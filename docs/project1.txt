@@ -1,0 +1,29 @@
+O objetivo deste projeto eh compreender alguns conceitos basicos de
+analise de programas atraves da pratica.
+
+Eh importante que o exercicio seja de curta duracao e, para isto,
+todos devem colaborar.  Por favor, leiam o guia abaixo sobre boas
+praticas no uso do controle de versao:
+
+http://homes.cs.washington.edu/~mernst/advice/version-control.html#best-practices
+
+Nesta experiencia pratica, vamos usar o framework de analise de codigo
+WALA (wala.sourceforge.net) e o um framework de instrumentacao de
+codigo ASM (asm.ow2.org).
+
+Vamos desenvolver uma ferramenta de cobertura de codigo baseada em
+fluxo de dados (dataflow).  Existem varias ferramentas disponiveis que
+usam cobertura de dataflow para avaliar qualidade de uma suite de
+testes.  Coverlipse (http://coverlipse.sourceforge.net/) eh um
+exemplo.  Estas ferramentas usam uma definicao intraprocedural de
+dependencia de dados.  Nossa ferramenta usara uma definicao
+inter-procedural.
+
+1. Especializar o algoritmo de RWSet, adicionando informacao de linha
+onde o acesso (escrita ou leitura originou), assim como a classe e o
+campo que produziram o acesso.
+
+2. Instrumentar codigo, utilizando biblioteca ASM, para produzir trace
+com eventos de leitura e escrita de campos
+
+3. Medir cobertura de dependencia de dados

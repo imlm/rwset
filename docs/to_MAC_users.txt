@@ -1,0 +1,9 @@
+This file contains additional information for the setup of this
+project to MAC users.  Please, update this file if you find additional
+requirements.
+
+1) Update the property "java_runtime_dir" on
+<root>/dat/wala.properties.
+  
+  Note the comment at the top of the declaration of this property
+  showing the (possible) location of the java runtime for MACOS.

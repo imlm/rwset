@@ -6,6 +6,8 @@ find src -name *.java | xargs javac -cp libs/wala-r3501-slice.jar -d bin
 NUM=`find bin -name *class | wc -l`
 echo "compiled $NUM classes"
 cp `find dat -name "*.txt" | xargs` bin
+cp `find dat -name "*.xml" | xargs` bin
+cp `find dat -name "*.properties" | xargs` bin
 
 (cd bin;
     find examples -name "*.class" | xargs jar cvf examples.jar

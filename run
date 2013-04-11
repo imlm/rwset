@@ -11,8 +11,8 @@ java -cp ".:bin:libs/wala-r3501-slice.jar" \
     -listAllClasses=false \
     -listAppMethods=false \
     -dotPath="/usr/bin/dot" \
-    -genCallGraph=true \
-    -measureTime=true \
+    -genCallGraph=false \
+    -measureTime=false \
     -printWalaWarnings=false \
     -targetClass="Lexamples/B" \
-    -targetMethod="n(Lexamples/A;)V" 
+    -targetMethod="n(Lexamples/A;Lexamples/C;)V" 

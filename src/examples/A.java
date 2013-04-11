@@ -4,18 +4,19 @@ public class A {
   
   int x;
   int y;
+  int z;
   
-  void m() {
+  public void m() {
     x = 10;
-    l();
+//    l();
   }
   
-  void l() {
+  public void l() {
     x++;  // B.n() will not be dependent on A.l() if you comment this line 
-    o();
+//    o();
   }
   
-  void o() {
+  public void o() {
     if (x > 20) {
       y = 2;
     }

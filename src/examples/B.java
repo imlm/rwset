@@ -4,9 +4,22 @@ public class B {
   
   int z;
   
-  public void n(A a) {
+  static float w;
+  
+  static {
+    w = 10;
+  }
+  
+  public void n(A a, C c) {
+    
     z = a.x;
-    if (a.y > 10) {
+    
+    n_(a, c);
+    
+  }
+
+  private void n_(A a, C c) {
+    if (a.y + a.z > c.y + w) {
       System.out.println("HELLO");
     }
   }

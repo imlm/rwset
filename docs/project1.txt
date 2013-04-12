@@ -17,7 +17,7 @@ cobertura de dataflow para avaliar qualidade de uma suite de testes.
 O plugin para o Eclipse chamado Coverlipse
 (http://coverlipse.sourceforge.net/) eh um exemplo.  Estas ferramentas
 usam definicoes classicas de cobertura de dataflow que se baseiam em
-dependencia de dados intraprocedural.  Nossa ferramenta usara uma
+dependencia de dados intraprocedurais.  Nossa ferramenta usara uma
 definicao interprocedural.  A principio, uma suite de testes que obtem
 uma cobertura elevada para este tipo de cobertura eh util para teste
 de integracao.  A ferramenta DaTeC faz algo similar a isto:
@@ -35,8 +35,41 @@ de integracao.  A ferramenta DaTeC faz algo similar a isto:
 Atividades do projeto:
 
 1. Especializar o algoritmo de RWSet, adicionando informacao de linha
-onde o acesso (escrita ou leitura originou), assim como a classe e o
-campo que produziram o acesso.
+onde ocorre o acesso de escrita ou de leitura, assim como a classe e o
+campo que produziram o acesso.  Nos queremos produzir um grafo de
+dependencia relativo a um metodo de interesse.  Os nos deste grafo
+possuem a forma abaixo.
+
+<
+ Classe de Acesso, 
+ Metodo de Acesso, 
+ Linha de Acesso, 
+ Classe de Definicao do Campo, 
+ Campo Acessado
+>
+
+Por exemplo, para o conjunto de classes abaixo, temos uma dependencia
+de dados caracterizada com a seguinte aresta:
+
+<Z, bar, 3, Y, val> -> <X, foo, 3, Y, val>
+
+
+class X {
+  foo() {
+3:   y.val = ...  
+  }
+}
+
+class Y {
+ int val;
+}
+
+class Z {
+ bar() {
+11:  ...  = y.val;
+ }
+}
+
 
 2. Instrumentar codigo, utilizando biblioteca ASM, para produzir trace
 com eventos de leitura e escrita de campos

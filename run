@@ -15,4 +15,5 @@ java -cp ".:bin:libs/wala-r3501-slice.jar" \
     -measureTime=false \
     -printWalaWarnings=false \
     -targetClass="Lexamples/B" \
-    -targetMethod="n(Lexamples/A;Lexamples/C;)V" 
+    -targetMethod="n(Lexamples/A;Lexamples/C;)V" \
+    -reportType=dot ## [list, dot]

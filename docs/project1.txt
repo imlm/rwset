@@ -51,7 +51,7 @@ possuem a forma abaixo.
 Por exemplo, para o conjunto de classes abaixo, temos uma dependencia
 de dados caracterizada com a seguinte aresta:
 
-<Z, bar, 3, Y, val> -> <X, foo, 3, Y, val>
+<Z, bar, 11, Y, val> -> <X, foo, 3, Y, val>
 
 
 class X {

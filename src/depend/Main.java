@@ -8,7 +8,6 @@ import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.examples.drivers.PDFTypeHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
@@ -21,6 +20,15 @@ import com.ibm.wala.viz.DotUtil;
 import depend.util.Util;
 
 public class Main {
+
+  private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
+
+  private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
+  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf";
+  
+  private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
+  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
+
   /**
    * example of use for this class
    * 
@@ -109,13 +117,16 @@ public class Main {
       /**
        * results.dot
        */
-      File dotFile = new File("/tmp/results.dot");
-      String strPdfFile= "/tmp/results.pdf";
+      String dotResultsPath = Util.getStringProperty(DOT_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_DOT_OUTPUT_PATH);
+      System.out.println("Outputing dot file to: " + dotResultsPath);
+      File dotFile = new File(dotResultsPath);
       FileWriter fw = new FileWriter(dotFile);
       fw.append(sb);
       fw.flush();
       fw.close();
-      DotUtil.spawnDot(Util.getStringProperty("dotPath"), strPdfFile, dotFile);
+      String graphPdfPath = Util.getStringProperty(GRAPH_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_GRAPH_OUTPUT_PATH);
+      System.out.println("Outputing graph file to: " + graphPdfPath);
+      DotUtil.spawnDot(Util.getStringProperty(DOT_EXECUTABLE_PATH_PROPERTY_NAME), graphPdfPath, dotFile);
       
     }
   }

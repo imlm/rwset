@@ -176,23 +176,35 @@ public class Util {
     return result;
   }
 
-  public static boolean getBooleanProperty(String string) {
+  public static boolean getBooleanProperty(String string, boolean defaultBoolean) {
     Object o = PROPS.get(string);
-    boolean result = false;
+    boolean result;
     if (o != null) {
       String s = (String) o;
       result = Boolean.parseBoolean(s);
+    } else {
+      result = defaultBoolean;
     }
     return result;
   }
-  
-  public static String getStringProperty(String string) {
-    Object o = PROPS.get(string);
-    String result = "";
+
+  public static boolean getBooleanProperty(String string) {
+    return getBooleanProperty(string, false);
+  }
+
+  public static String getStringProperty(String propertyName, String defaultString) {
+    Object o = PROPS.get(propertyName);
+    String result;
     if (o != null) {
       result = (String) o;
+    } else {
+      result = defaultString;
     }
     return result;
+  }
+
+  public static String getStringProperty(String string) {
+    return getStringProperty(string, "");
   }
   
   public static Set<IMethod> findAllMethods(ClassHierarchy cha) {

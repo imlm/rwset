@@ -46,14 +46,14 @@ public class Main {
     String strClass = Util.getStringProperty("targetClass");
     IClass clazz = an.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
     if (clazz == null) {
-      throw new RuntimeException("could not find class!");
+      throw new RuntimeException("Could not find class \"" + strClass + "\"");
     }
 
     //  find informed method
     String strMethod = Util.getStringProperty("targetMethod");
     IMethod method = clazz.getMethod(Selector.make(strMethod));
     if (method == null) {
-      throw new RuntimeException("could not find class!");
+      throw new RuntimeException("Could not find method \"" + strMethod + "\" in " + clazz.getName());
     }
     
     // obtain methods that can write data to this method

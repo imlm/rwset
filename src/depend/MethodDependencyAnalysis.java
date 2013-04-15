@@ -87,6 +87,9 @@ public class MethodDependencyAnalysis {
    */
   public MethodDependencyAnalysis(Properties p) throws IOException, IllegalArgumentException, WalaException, CancelException {
     init(p);
+    if (Util.getBooleanProperty("printWalaWarnings")) {
+      System.out.println(Warnings.asString());    
+    }
   }
 
   /**
@@ -323,15 +326,20 @@ public class MethodDependencyAnalysis {
     }
   }
 
-  public Map<IMethod,String> localizeMethodWriters(Map<FieldReference,String> reads, boolean onlyPublicClass, boolean onlyPublicMethod) {
-    Map<IMethod,String> result = new HashMap<IMethod,String>();
-     for (Entry<FieldReference, String> fread: reads.entrySet()) {
+
+  public Map<IMethod,String> getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
+    if (method == null) {
+      throw new RuntimeException("Could not find informed method!");
+    } 
+    Map<FieldReference, String> reads = rwSets.get(method).readSet;
+    Map<IMethod, String> result = new HashMap<IMethod, String>();
+    for (Entry<FieldReference, String> fread: reads.entrySet()) {
       for (Map.Entry<IMethod, RWSet> e1 : rwSets.entrySet()) {
         IMethod writer = e1.getKey();
-        if (onlyPublicClass && !writer.getDeclaringClass().isPublic()) {
+        if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
           continue;
         }
-        if (onlyPublicMethod && !writer.isPublic()) {
+        if (onlyPublicMethods && !writer.isPublic()) {
           continue;
         }
         Map<FieldReference,String> writeSet = e1.getValue().writeSet;
@@ -341,19 +349,6 @@ public class MethodDependencyAnalysis {
       }
     }
     return result;
-  }
-
-  public Map<FieldReference,String> getFieldReads(IMethod imeth) {
-    return rwSets.get(imeth).readSet;
-  }
-
-
-  public Map<IMethod,String> getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
-    if (method == null) {
-      throw new RuntimeException("Could not find informed method!");
-    } 
-    Map<FieldReference,String> reads = getFieldReads(method);
-    return localizeMethodWriters(reads , onlyPublicClasses, onlyPublicMethods);
   }
 
 

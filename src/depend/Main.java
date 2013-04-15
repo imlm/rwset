@@ -40,12 +40,9 @@ public class Main {
     Warnings.clear();
     
     // performing dependency analysis
-    MethodDependencyAnalysis an = new MethodDependencyAnalysis(p);    
-    if (Util.getBooleanProperty("printWalaWarnings")) {
-      System.out.println(Warnings.asString());    
-    }
+    MethodDependencyAnalysis an = new MethodDependencyAnalysis(p);
     
-    // find **informed** class
+    // find informed class
     String strClass = Util.getStringProperty("targetClass");
     IClass clazz = an.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
     if (clazz == null) {
@@ -62,6 +59,7 @@ public class Main {
     // obtain methods that can write data to this method
     Map<IMethod,String> map = an.getDependencies(method, false, false);
     
+    // dump results in file: 
     Util.dumpResults(method, map);
 
   }

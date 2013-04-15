@@ -19,10 +19,9 @@ import com.ibm.wala.util.WalaException;
 import com.ibm.wala.viz.DotUtil;
 
 public class Util {
-
-  /**
-   * constants
-   */
+  
+  /************** CONSTANTS **************/
+  
   private static String APP_PREFIX;
 
   private static Properties PROPS;
@@ -43,15 +42,13 @@ public class Util {
   
   private static final String REPORT_TYPE_PROPERTY_NAME = "reportType";
   
-  private static final String APP_PREFIX_PROPERTY_NAME = "dotPath";
+  private static final String APP_PREFIX_PROPERTY_NAME = "appPrefix";
   
   private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
 
   private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
 
   private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
-
-
 
   /************** classification of methods and classes ******************/
   public static boolean isRelevantMethod(IMethod meth) {
@@ -79,8 +76,6 @@ public class Util {
     String pack = klass.getName().getPackage().toString();
     return pack.startsWith(APP_PREFIX);
   }
-
-
   
   public static void setProperties(Properties _props) {
     PROPS = _props;
@@ -95,7 +90,6 @@ public class Util {
     warningMessages.append(msg);
     warningMessages.append("\n");
   }
-
  
   public static boolean getBooleanProperty(String string, boolean defaultBoolean) {
     Object o = PROPS.get(string);

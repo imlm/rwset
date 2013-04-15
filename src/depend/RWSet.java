@@ -1,6 +1,8 @@
 package depend;
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.ibm.wala.types.FieldReference;
@@ -16,9 +18,9 @@ import com.ibm.wala.types.FieldReference;
  ***/
 public class RWSet {
   
-  protected Set<FieldReference> readSet, writeSet;
+  protected Map<FieldReference,String> readSet, writeSet;
   
-  public RWSet(Set<FieldReference> readSet, Set<FieldReference> writeSet) {
+  public RWSet(Map<FieldReference,String> readSet, Map<FieldReference,String> writeSet) {
     super();
     this.readSet = readSet;
     this.writeSet = writeSet;
@@ -32,25 +34,45 @@ public class RWSet {
    */
   public RWSet merge(RWSet other){
     // TODO: Deal with null readSet/writeSets? Or we are assume they can't be null?
-    Set<FieldReference> mergedReadSet = new HashSet<FieldReference>(this.readSet);
-    mergedReadSet.addAll(other.readSet);
-    Set<FieldReference> mergedWriteSet = new HashSet<FieldReference>(this.writeSet);
-    mergedWriteSet.addAll(other.writeSet);
-    return new RWSet(mergedReadSet, mergedWriteSet);
+//    Map<Set<FieldReference>,String> mergedReadSet = new HashSet<FieldReference>(this.readSet);
+//    mergedReadSet.addAll(other.readSet);
+//    Set<FieldReference> mergedWriteSet = new HashSet<FieldReference>(this.writeSet);
+//    mergedWriteSet.addAll(other.writeSet);
+//    return new RWSet(mergedReadSet, mergedWriteSet);
+    return null;
   }
+  
   public String toString() {
     StringBuffer sb = new StringBuffer();
     sb.append("READS FROM:");
     sb.append("\n");
-    for (FieldReference fr : readSet) {
-      sb.append(" " + fr);
+    for (Entry<FieldReference, String> er: readSet.entrySet()) {
+      sb.append(" " + er.getKey());
+      sb.append(" " + er.getValue());
       sb.append("\n");
     }
     System.out.println("WRITES TO:");
-    for (FieldReference fr : writeSet) {
-      sb.append(" " + fr);
+    for (Entry<FieldReference, String> ew: writeSet.entrySet()) {
+      sb.append(" " + ew.getKey());
+      sb.append(" " + ew.getValue());
       sb.append("\n");
     }
     return sb.toString();
   }
+  
+//  public String toString() {
+//    StringBuffer sb = new StringBuffer();
+//    sb.append("READS FROM:");
+//    sb.append("\n");
+//    for (FieldReference fr : readSet) {
+//      sb.append(" " + fr);
+//      sb.append("\n");
+//    }
+//    System.out.println("WRITES TO:");
+//    for (FieldReference fr : writeSet) {
+//      sb.append(" " + fr);
+//      sb.append("\n");
+//    }
+//    return sb.toString();
+//  }
 }

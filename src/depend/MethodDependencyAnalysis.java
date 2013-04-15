@@ -337,7 +337,6 @@ public class MethodDependencyAnalysis {
         Map<FieldReference,String> writeSet = e1.getValue().writeSet;
         if (writeSet.containsKey(fread.getKey())) {
           result.put(writer, "." + writeSet.get(fread.getKey()));
-//          result.add(writer + "." + writeSet.get(fread.getKey()));
         }
       }
     }

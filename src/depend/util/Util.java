@@ -1,36 +1,44 @@
 package depend.util;
 
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
-import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.WalaException;
+import com.ibm.wala.viz.DotUtil;
 
 public class Util {
 
+  /**
+   * constants
+   */
   private static String APP_PREFIX;
 
   private static Properties PROPS;
-
-  public static void setProperties(Properties _props) {
-    PROPS = _props;
-    APP_PREFIX = _props.getProperty("appPrefix");  
-    if (APP_PREFIX == null) {
-      throw new RuntimeException("Please, specifiy \"appPrefix\" parameter");
-    }
-  }
   
-  private static StringBuffer warningMessages = new StringBuffer();
-  public static void logWarning(String msg) {
-    warningMessages.append(msg);
-    warningMessages.append("\n");
-  }
+  private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
+
+  private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
+  
+  private static final String OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator");
+
+  private static final String DEFAULT_GRAPH_OUTPUT_PATH = OUTPUT_PATH + "results.pdf"; 
+  
+  private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
+  
+  private static final String DEFAULT_DOT_OUTPUT_PATH = OUTPUT_PATH + "results.dot";
+
 
   /************** classification of methods and classes ******************/
   public static boolean isRelevantMethod(IMethod meth) {
@@ -60,128 +68,22 @@ public class Util {
   }
 
 
-  public static IMethod locateIMethods(Set<IMethod> allMethods, String methStr) {
-    IMethod result = null;
-    int idx = methStr.indexOf(';');
-    String klassName = "," + methStr.substring(0, idx).trim() + ">";
-    int idx2 = methStr.indexOf('(');
-    String methodName = methStr.substring(idx+1, idx2);
-    String signature = methStr.substring(idx2);
-    for (IMethod tmp : allMethods) {
-      String klass = tmp.getDeclaringClass().toString();
-      String mName = tmp.getName().toString();
-      String descriptorName = tmp.getDescriptor().toString();
-      if ((klass.indexOf(klassName) != -1) &&
-          mName.equals(methodName) && 
-          descriptorName.equals(signature)) {
-        result = tmp;
-        break;
-      }
+  
+  public static void setProperties(Properties _props) {
+    PROPS = _props;
+    APP_PREFIX = _props.getProperty("appPrefix");  
+    if (APP_PREFIX == null) {
+      throw new RuntimeException("Please, specifiy \"appPrefix\" parameter");
     }
-    if (result == null) {
-      throw new RuntimeException("could not find informed method.  Check your input! " +  methStr);
-    } 
-    return result;
+  }
+  
+  private static StringBuffer warningMessages = new StringBuffer();
+  public static void logWarning(String msg) {
+    warningMessages.append(msg);
+    warningMessages.append("\n");
   }
 
- /**
-   * 
-   * translates to Randoop format
-   */
-  public static List<String> toRandoopFormat(Set<IMethod> scopeSet) {
-    List<String> result = new ArrayList<String>(scopeSet.size());
-
-    for (IMethod m : scopeSet) {
-      StringBuffer sb = new StringBuffer();
-      if (m.isInit()) {
-        sb.append("cons : ");
-      } else {
-        sb.append("method : ");
-      }
-
-      //classname
-      sb.append(m.getDeclaringClass().getReference().getName().toString().substring(1));
-      sb.append('.');
-      if (m.isInit()) {
-        sb.append("<init>");
-      } else {
-        String name = m.getSelector().toString();
-        sb.append(name.substring(0,name.indexOf('(')));
-      }
-
-      sb.append('(');
-      int nParameters = m.getNumberOfParameters();
-      int start;
-      if (m.isStatic()) {
-        start = 0;
-      } else {
-        start = 1; //skip 'this'
-      }
-      boolean hasParameter = false;
-
-      for (int i = start; i < nParameters ; i++) {
-        hasParameter = true;
-        TypeReference tr = m.getParameterType(i);
-        if (tr.isClassType()) {
-          sb.append(tr.getName().toString().substring(1));
-        } else if (tr.isArrayType()) {
-          //          sb.append(tr.getArrayElementType().getName().toString().substring(1));
-          TypeReference tarr = tr.getArrayElementType();
-          if (tarr.isClassType()) {
-            sb.append(tr.getName().toString());
-            sb.append(';');
-          } else {
-            sb.append('[');
-            sb.append(tarr.getName().toString());
-          }
-        } else if (tr.isPrimitiveType()) {
-          sb.append(translatePrimitiveCode(tr.getName().toString()));
-        } else {
-          sb.append(tr.getName().toString());
-        }
-        sb.append(", ");
-      }
-      if (hasParameter) {
-        sb.deleteCharAt(sb.length() - 1);
-        sb.deleteCharAt(sb.length() - 1);
-      }
-      sb.append(')');
-
-      String finalname = sb.toString().replace('/', '.');
-      result.add(finalname);
-      //      System.out.println(finalname);
-    }
-
-    return result;
-  }
-
-  private static String translatePrimitiveCode(String code) {
-    String result;
-
-    if (code.equals("Z")) {
-      result = "boolean";
-    } else if (code.equals("B")) {
-      result = "byte";
-    } else if (code.equals("C")) {
-      result = "char";
-    } else if (code.equals("D")) {
-      result = "double";
-    } else if (code.equals("F")) {
-      result = "float";
-    } else if (code.equals("I")) {
-      result = "int";
-    } else if (code.equals("J")) {
-      result = "long";
-    } else if (code.equals("S")) {
-      result = "short";
-    } else if (code.equals("V")) {
-      result = "void";
-    } else {
-      throw new RuntimeException("value unknown!");
-    }
-    return result;
-  }
-
+ 
   public static boolean getBooleanProperty(String string, boolean defaultBoolean) {
     Object o = PROPS.get(string);
     boolean result;
@@ -212,7 +114,79 @@ public class Util {
   public static String getStringProperty(String string) {
     return getStringProperty(string, "");
   }
-  
+
+  /**
+   * Generates output
+   * 
+   * @param method
+   * @param map
+   * @throws IOException
+   * @throws WalaException
+   */
+  public static void dumpResults(IMethod method, Map<IMethod,String> map) throws IOException, WalaException {
+    
+    String reportType = Util.getStringProperty("reportType").trim();
+    
+    if (reportType.equals("list")) {
+      
+      System.out.printf("data dependencies to method %s\n", method);
+
+      // printing dependencies
+      for (Entry<IMethod, String> m: map.entrySet()) {
+        if (Util.isAppClass(m.getKey().getDeclaringClass())) {
+          System.out.printf("  %s\n", m.getKey() + m.getValue());
+        }      
+      }
+
+    } else if (reportType.equals("dot")) {
+      //TODO: you may want to print before propagating 
+      //data dependencies
+      
+      /**
+       * generate dot
+       */
+      StringBuffer sb = new StringBuffer();
+      sb.append("digraph \"DirectedGraph\" {\n");
+      sb.append(" graph [concentrate = true];\n");
+      sb.append(" center=true;\n");
+      sb.append(" fontsize=6;\n");
+      sb.append(" node [ color=blue,shape=\"box\"fontsize=6,fontcolor=black,fontname=Arial];\n");
+      sb.append(" edge [ color=black,fontsize=6,fontcolor=black,fontname=Arial];\n");
+      
+      for (Entry<IMethod, String> m: map.entrySet()) {
+        if (Util.isAppClass(m.getKey().getDeclaringClass())) {
+          sb.append(m);
+          sb.append(" -> ");
+          sb.append(m.getKey() + m.getValue());
+          sb.append("\n");
+        }      
+      }
+      sb.append("}\n");
+      
+      /**
+       * results.dot
+       */
+      String dotResultsPath = Util.getStringProperty(DOT_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_DOT_OUTPUT_PATH);
+      System.out.println("Outputing dot file to: " + dotResultsPath);
+      File dotFile = new File(dotResultsPath);
+      FileWriter fw = new FileWriter(dotFile);
+      fw.append(sb);
+      fw.flush();
+      fw.close();
+      String graphPdfPath = Util.getStringProperty(GRAPH_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_GRAPH_OUTPUT_PATH);
+      System.out.println("Outputing graph file to: " + graphPdfPath);
+      DotUtil.spawnDot(Util.getStringProperty(DOT_EXECUTABLE_PATH_PROPERTY_NAME), graphPdfPath, dotFile);
+      
+    }
+  }
+
+  /**
+   * find all methods from the class hieararchy
+   * 
+   * @param cha
+   * @return
+   */
+  @Deprecated
   public static Set<IMethod> findAllMethods(ClassHierarchy cha) {
     Set<IMethod> allMethods = new HashSet<IMethod>();
     

@@ -27,17 +27,30 @@ public class Util {
 
   private static Properties PROPS;
   
-  private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
-
-  private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
-  
   private static final String OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator");
 
   private static final String DEFAULT_GRAPH_OUTPUT_PATH = OUTPUT_PATH + "results.pdf"; 
-  
-  private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
-  
+    
   private static final String DEFAULT_DOT_OUTPUT_PATH = OUTPUT_PATH + "results.dot";
+  
+  /************** PROPERTY NAMES **************/
+  
+  private static final String LIST_ALL_CLASSES_PROPERTY_NAME = "listAllClasses";
+  
+  private static final String LIST_APP_CLASSES_PROPERTY_NAME = "listAppClasses";
+  
+  private static final String LIST_APP_METHODS_PROPERTY_NAME = "listAppMethods";
+  
+  private static final String REPORT_TYPE_PROPERTY_NAME = "reportType";
+  
+  private static final String APP_PREFIX_PROPERTY_NAME = "dotPath";
+  
+  private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
+
+  private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
+
+  private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
+
 
 
   /************** classification of methods and classes ******************/
@@ -71,7 +84,7 @@ public class Util {
   
   public static void setProperties(Properties _props) {
     PROPS = _props;
-    APP_PREFIX = _props.getProperty("appPrefix");  
+    APP_PREFIX = _props.getProperty(APP_PREFIX_PROPERTY_NAME);  
     if (APP_PREFIX == null) {
       throw new RuntimeException("Please, specifiy \"appPrefix\" parameter");
     }
@@ -125,7 +138,7 @@ public class Util {
    */
   public static void dumpResults(IMethod method, Map<IMethod,String> map) throws IOException, WalaException {
     
-    String reportType = Util.getStringProperty("reportType").trim();
+    String reportType = Util.getStringProperty(REPORT_TYPE_PROPERTY_NAME).trim();
     
     if (reportType.equals("list")) {
       
@@ -191,17 +204,17 @@ public class Util {
     Set<IMethod> allMethods = new HashSet<IMethod>();
     
     // configuration    
-    boolean printAllClasses = getBooleanProperty("listAllClasses");
+    boolean printAllClasses = getBooleanProperty(LIST_ALL_CLASSES_PROPERTY_NAME);
     if (printAllClasses) {
       System.out.println("All classes:");
     }
 
-    boolean printAppClasses = getBooleanProperty("listAppClasses");
+    boolean printAppClasses = getBooleanProperty(LIST_APP_CLASSES_PROPERTY_NAME);
     if (printAppClasses) {
       System.out.println("Application classes:");
     }
 
-    boolean printAppMethods = getBooleanProperty("listAppMethods");
+    boolean printAppMethods = getBooleanProperty(LIST_APP_METHODS_PROPERTY_NAME);
 
     Set<IClass> visitedClasses = new HashSet<IClass>();
     List<IClass> toVisitClass = new ArrayList<IClass>();

@@ -248,7 +248,9 @@ public class MethodDependencyAnalysis {
         try {
           int bytecodeIndex = method.getBytecodeIndex(i);
           int sourceLineNum = method.getLineNumber(bytecodeIndex);
-          set.put(fr, "Line:" + sourceLineNum);
+          set.put(fr, " LINE:" + sourceLineNum + 
+                      ", CLASS OF FIELD DEFINITION: " + fr.getDeclaringClass() + 
+                      ", ACCESSED FIELD: " + fr.getName());
         } catch (InvalidClassFileException e) {
           e.printStackTrace();
         }
@@ -269,7 +271,9 @@ public class MethodDependencyAnalysis {
           try {
             int bytecodeIndex = method1.getBytecodeIndex(i);
             int sourceLineNum = method1.getLineNumber(bytecodeIndex);
-            set.put(fr, "Line:" + sourceLineNum);
+            set.put(fr, " LINE:" + sourceLineNum + 
+                        ", CLASS OF FIELD DEFINITION:" + fr.getDeclaringClass() + 
+                        ", ACCESSED FIELD: " + fr.getName());
           } catch (InvalidClassFileException e) {
             e.printStackTrace();
           }

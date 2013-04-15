@@ -87,7 +87,7 @@ public class Main {
       // printing dependencies
       for (Entry<IMethod, String> m: map.entrySet()) {
         if (Util.isAppClass(m.getKey().getDeclaringClass())) {
-          System.out.printf("  %s\n", m.getKey() + m.getValue());
+          System.out.printf("  %s\n", m.getKey().toString() + m.getValue().toString());
         }      
       }
 
@@ -110,7 +110,7 @@ public class Main {
         if (Util.isAppClass(m.getKey().getDeclaringClass())) {
           sb.append(m);
           sb.append(" -> ");
-          sb.append(m.getKey() + m.getValue());
+          sb.append(m.getKey().getDeclaringClass() + m.getValue());
           sb.append("\n");
         }      
       }

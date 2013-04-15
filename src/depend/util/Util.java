@@ -20,13 +20,19 @@ public class Util {
 
   public static void setProperties(Properties _props) {
     PROPS = _props;
-    APP_PREFIX = _props.getProperty("appPrefix");
-    
+    APP_PREFIX = _props.getProperty("appPrefix");  
     if (APP_PREFIX == null) {
       throw new RuntimeException("Please, specifiy \"appPrefix\" parameter");
     }
   }
+  
+  private static StringBuffer warningMessages = new StringBuffer();
+  public static void logWarning(String msg) {
+    warningMessages.append(msg);
+    warningMessages.append("\n");
+  }
 
+  /************** classification of methods and classes ******************/
   public static boolean isRelevantMethod(IMethod meth) {
     IClass klass = meth.getDeclaringClass();
     String pack = klass.getName().getPackage().toString();

@@ -1,4 +1,4 @@
-package depend;
+  package depend;
 
 
 import java.io.File;
@@ -186,11 +186,14 @@ public class MethodDependencyAnalysis {
     Set<IMethod> visited = new HashSet<IMethod>();
     while (!toVisit.isEmpty()) {      
       IClass cur = toVisit.remove(0);
+      // want to visit all classes regardless it is application 
+      // as not application classes can be parent of application
+      // classes. 
       toVisit.addAll(cha.getImmediateSubclasses(cur));
       for (IMethod imethod : cur.getAllMethods()) {
-        if (imethod.isNative() || imethod.isAbstract() || visited.contains(imethod)) { // abstract methods have no body
+        if (imethod.isNative() || imethod.isAbstract() || visited.contains(imethod)) { 
           continue;
-        }
+        }        
         visited.add(imethod);
         updateRWSet(imethod);
       }
@@ -210,16 +213,9 @@ public class MethodDependencyAnalysis {
     }
 
     IR ir = cache.getIRFactory().makeIR(imethod, Everywhere.EVERYWHERE, options.getSSAOptions());
-
-    //    boolean here = false;
-    //    if (imethod.toString().contains("addRecipe")) {
-    //      System.out.println(ir);
-    //      here = true;
-    //      System.out.println("STOP!");
-    //    }
     
-    Map<FieldReference,String> readSet = new HashMap<FieldReference,String>();
-    Map<FieldReference,String> writeSet = new HashMap<FieldReference,String>();
+    Map<FieldReference, String> readSet = new HashMap<FieldReference, String>();
+    Map<FieldReference, String> writeSet = new HashMap<FieldReference, String>();
     Map<Integer, FieldReference> ssaVar = new HashMap<Integer, FieldReference>();
     
     SSAInstruction[] instructions = ir.getInstructions(); 
@@ -241,8 +237,9 @@ public class MethodDependencyAnalysis {
       case 0:
       case 1:
         SSAFieldAccessInstruction fai = (SSAFieldAccessInstruction) ins;
-        FieldReference fr = fai.getDeclaredField();//FieldReference o campo acessado (lido ou escrito) 
-        Map<FieldReference,String> set = (kind == 0) ? readSet : writeSet;
+        // A FieldReference object denotes an access (read or write) to a field 
+        FieldReference fr = fai.getDeclaredField(); 
+        Map<FieldReference, String> set = (kind == 0) ? readSet : writeSet;
         set.put(fr, "Line:" + imethod.getLineNumber(i));
         // remembering ssa-definition if one exists
         int def = fai.getDef();
@@ -267,10 +264,6 @@ public class MethodDependencyAnalysis {
 
     result = new RWSet(readSet, writeSet);
     rwSets.put(imethod, result);
-    
-    RWSet values = rwSets.get(imethod);
-//    System.out.println("Method: " + imethod + "\nValue: " + values.toString());
-//    System.out.println("---------------------------------------------------------------------------------------------------------------------------------------");
   }
 
   /***
@@ -287,11 +280,15 @@ public class MethodDependencyAnalysis {
    * @throws WalaException
    * @throws CancelException
    * @throws IOException
-   **///complilar o codigo com -g p/ add informacao de linha
-  //ver no wala como acessa a linha do field
+   **/
   private void propagateRWSets(Graph<CGNode> graph) throws IllegalArgumentException, WalaException, CancelException, IOException {
-    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(graph));//usa a ordem topologica para  
-    while (it.hasNext()) {                                                                // propagar informacao
+    /**
+     * Propagate information across the edges of the control-flow graph.
+     * For that, we use the reverse topological order so to reduce the 
+     * number of iterations we need to process for computing fix point.
+     */
+    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(graph));  
+    while (it.hasNext()) {                                                                
       CGNode node = it.next();
       IMethod cMethod = node.getMethod();
       if (!Util.isRelevantMethod(cMethod)) {
@@ -307,14 +304,13 @@ public class MethodDependencyAnalysis {
         }
         RWSet rwSetP = rwSets.get(pMethod);
         if (rwSetP == null) {
-          System.err.printf("no RW-set info for method %s\n", pMethod);
+          Util.logWarning("no RW-set info for method " + pMethod.toString());
           continue;
         }
         if (rwSetC == null) {
           rwSetC = rwSets.get(cMethod);
           if (rwSetC == null) {
-            //TODO: we need to solve this!
-            System.err.printf("no RW-set info for method %s\n", cMethod);
+            Util.logWarning("no RW-set info for method " + cMethod);
             continue;
           }
         }
@@ -329,7 +325,6 @@ public class MethodDependencyAnalysis {
     Map<IMethod,String> result = new HashMap<IMethod,String>();
      for (Entry<FieldReference, String> fread: reads.entrySet()) {
       for (Map.Entry<IMethod, RWSet> e1 : rwSets.entrySet()) {
-//        System.out.println(e1.toString());
         IMethod writer = e1.getKey();
         if (onlyPublicClass && !writer.getDeclaringClass().isPublic()) {
           continue;

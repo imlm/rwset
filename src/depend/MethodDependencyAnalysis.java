@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
@@ -216,12 +217,14 @@ public class MethodDependencyAnalysis {
     //      here = true;
     //      System.out.println("STOP!");
     //    }
-
-    Set<FieldReference> readSet = new HashSet<FieldReference>();
-    Set<FieldReference> writeSet = new HashSet<FieldReference>();
+    
+    Map<FieldReference,String> readSet = new HashMap<FieldReference,String>();
+    Map<FieldReference,String> writeSet = new HashMap<FieldReference,String>();
     Map<Integer, FieldReference> ssaVar = new HashMap<Integer, FieldReference>();
-
-    for (SSAInstruction ins : ir.getInstructions()) {
+    
+    SSAInstruction[] instructions = ir.getInstructions(); 
+    for (int i = 0; i < instructions.length; i++) {
+      SSAInstruction ins =  instructions[i];
       if (ins == null) continue;
       int kind = -1;
       if (ins instanceof SSAGetInstruction) {
@@ -238,9 +241,9 @@ public class MethodDependencyAnalysis {
       case 0:
       case 1:
         SSAFieldAccessInstruction fai = (SSAFieldAccessInstruction) ins;
-        FieldReference fr = fai.getDeclaredField();
-        Set<FieldReference> set = (kind == 0) ? readSet : writeSet;
-        set.add(fr);
+        FieldReference fr = fai.getDeclaredField();//FieldReference o campo acessado (lido ou escrito) 
+        Map<FieldReference,String> set = (kind == 0) ? readSet : writeSet;
+        set.put(fr, "Line:" + imethod.getLineNumber(i));
         // remembering ssa-definition if one exists
         int def = fai.getDef();
         if (def != -1) {
@@ -254,7 +257,7 @@ public class MethodDependencyAnalysis {
         fr = ssaVar.get(arRef);
         if (fr != null) {
           set = (kind == 2) ? readSet : writeSet;
-          set.add(fr);
+          set.put(fr, "Line:" + imethod.getLineNumber(i));
         }
         break;
       default:
@@ -264,6 +267,10 @@ public class MethodDependencyAnalysis {
 
     result = new RWSet(readSet, writeSet);
     rwSets.put(imethod, result);
+    
+    RWSet values = rwSets.get(imethod);
+//    System.out.println("Method: " + imethod + "\nValue: " + values.toString());
+//    System.out.println("---------------------------------------------------------------------------------------------------------------------------------------");
   }
 
   /***
@@ -280,10 +287,11 @@ public class MethodDependencyAnalysis {
    * @throws WalaException
    * @throws CancelException
    * @throws IOException
-   **/
+   **///complilar o codigo com -g p/ add informacao de linha
+  //ver no wala como acessa a linha do field
   private void propagateRWSets(Graph<CGNode> graph) throws IllegalArgumentException, WalaException, CancelException, IOException {
-    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(graph));
-    while (it.hasNext()) {
+    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(graph));//usa a ordem topologica para  
+    while (it.hasNext()) {                                                                // propagar informacao
       CGNode node = it.next();
       IMethod cMethod = node.getMethod();
       if (!Util.isRelevantMethod(cMethod)) {
@@ -311,16 +319,17 @@ public class MethodDependencyAnalysis {
           }
         }
         // propagate!
-        rwSetP.writeSet.addAll(rwSetC.writeSet);  
-        rwSetP.readSet.addAll(rwSetC.readSet);
+        rwSetP.writeSet.putAll(rwSetC.writeSet);  
+        rwSetP.readSet.putAll(rwSetC.readSet);
       }
     }
   }
 
-  public Set<IMethod> localizeMethodWriters(Set<FieldReference> reads, boolean onlyPublicClass, boolean onlyPublicMethod) {
-    Set<IMethod> result = new HashSet<IMethod>();
-    for (FieldReference fread : reads) {
+  public Map<IMethod,String> localizeMethodWriters(Map<FieldReference,String> reads, boolean onlyPublicClass, boolean onlyPublicMethod) {
+    Map<IMethod,String> result = new HashMap<IMethod,String>();
+     for (Entry<FieldReference, String> fread: reads.entrySet()) {
       for (Map.Entry<IMethod, RWSet> e1 : rwSets.entrySet()) {
+//        System.out.println(e1.toString());
         IMethod writer = e1.getKey();
         if (onlyPublicClass && !writer.getDeclaringClass().isPublic()) {
           continue;
@@ -328,25 +337,26 @@ public class MethodDependencyAnalysis {
         if (onlyPublicMethod && !writer.isPublic()) {
           continue;
         }
-        Set<FieldReference> writeSet = e1.getValue().writeSet;
-        if (writeSet.contains(fread)) {
-          result.add(writer);
+        Map<FieldReference,String> writeSet = e1.getValue().writeSet;
+        if (writeSet.containsKey(fread.getKey())) {
+          result.put(writer, "." + writeSet.get(fread.getKey()));
+//          result.add(writer + "." + writeSet.get(fread.getKey()));
         }
       }
     }
     return result;
   }
 
-  public Set<FieldReference> getFieldReads(IMethod imeth) {
+  public Map<FieldReference,String> getFieldReads(IMethod imeth) {
     return rwSets.get(imeth).readSet;
   }
 
 
-  public Set<IMethod> getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
+  public Map<IMethod,String> getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
     if (method == null) {
       throw new RuntimeException("Could not find informed method!");
     } 
-    Set<FieldReference> reads = getFieldReads(method);
+    Map<FieldReference,String> reads = getFieldReads(method);
     return localizeMethodWriters(reads , onlyPublicClasses, onlyPublicMethods);
   }
 

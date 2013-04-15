@@ -35,22 +35,22 @@ public class MultiLayerRWMappings implements RWMappings {
   public void putOrMergeWrite(IMethod method, int sourceLineNumber,
       Set<FieldReference> writeRefs) {
     RWSet rwSet = this.get(method, sourceLineNumber);
-    if(rwSet != null){
-      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(Collections.<FieldReference>emptySet(), writeRefs)));
-    } else {
-      this.put(method, sourceLineNumber, new RWSet(Collections.<FieldReference>emptySet(), writeRefs));
-    }
+//    if(rwSet != null){
+//      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(Collections.<FieldReference>emptySet(), writeRefs)));
+//    } else {
+//      this.put(method, sourceLineNumber, new RWSet(Collections.<FieldReference>emptySet(), writeRefs));
+//    }
   }
 
   @Override
   public void putOrMergeRead(IMethod method, int sourceLineNumber,
       Set<FieldReference> readRefs) {
     RWSet rwSet = this.get(method, sourceLineNumber);
-    if(rwSet != null){
-      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(readRefs, Collections.<FieldReference>emptySet())));
-    } else {
-      this.put(method, sourceLineNumber, new RWSet(readRefs, Collections.<FieldReference>emptySet()));
-    }
+//    if(rwSet != null){
+//      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(readRefs, Collections.<FieldReference>emptySet())));
+//    } else {
+//      this.put(method, sourceLineNumber, new RWSet(readRefs, Collections.<FieldReference>emptySet()));
+//    }
   }
 
   @Override

@@ -4,14 +4,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
@@ -27,12 +25,10 @@ public class Main {
   private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
 
   private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
-//  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf"; 
-  private static final String DEFAULT_GRAPH_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.pdf";
+  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf"; 
   
   private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
-//  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
-  private static final String DEFAULT_DOT_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.dot";
+  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
 
   /**
    * example of use for this class

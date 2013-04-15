@@ -3,12 +3,15 @@ package depend;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
@@ -20,6 +23,17 @@ import com.ibm.wala.viz.DotUtil;
 import depend.util.Util;
 
 public class Main {
+
+  private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
+
+  private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
+//  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf"; 
+  private static final String DEFAULT_GRAPH_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.pdf";
+  
+  private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
+//  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
+  private static final String DEFAULT_DOT_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.dot";
+
   /**
    * example of use for this class
    * 
@@ -60,24 +74,24 @@ public class Main {
     
     
     // looking for dependencies to method
-    Set<IMethod> set = an.getDependencies(method, false, false);
+    Map<IMethod,String> map = an.getDependencies(method, false, false);
     
     String reportType = Util.getStringProperty("reportType").trim();
     
-    dumpResults(method, set, reportType);
+    dumpResults(method, map, reportType);
 
   }
 
-  private static void dumpResults(IMethod method, Set<IMethod> set,
+  private static void dumpResults(IMethod method, Map<IMethod,String> map,
       String reportType) throws IOException, WalaException {
     if (reportType.equals("list")) {
       
       System.out.printf("data dependencies to method %s\n", method);
 
       // printing dependencies
-      for (IMethod m : set) {
-        if (Util.isAppClass(m.getDeclaringClass())) {
-          System.out.printf("  %s\n", m);
+      for (Entry<IMethod, String> m: map.entrySet()) {
+        if (Util.isAppClass(m.getKey().getDeclaringClass())) {
+          System.out.printf("  %s\n", m.getKey() + m.getValue());
         }      
       }
 
@@ -95,11 +109,12 @@ public class Main {
       sb.append(" fontsize=6;\n");
       sb.append(" node [ color=blue,shape=\"box\"fontsize=6,fontcolor=black,fontname=Arial];\n");
       sb.append(" edge [ color=black,fontsize=6,fontcolor=black,fontname=Arial];\n");
-      for (IMethod m : set) {
-        if (Util.isAppClass(m.getDeclaringClass())) {
+      
+      for (Entry<IMethod, String> m: map.entrySet()) {
+        if (Util.isAppClass(m.getKey().getDeclaringClass())) {
           sb.append(m);
           sb.append(" -> ");
-          sb.append(method);
+          sb.append(m.getKey() + m.getValue());
           sb.append("\n");
         }      
       }
@@ -108,13 +123,16 @@ public class Main {
       /**
        * results.dot
        */
-      File dotFile = new File("/tmp/results.dot");
-      String strPdfFile= "/tmp/results.pdf";
+      String dotResultsPath = Util.getStringProperty(DOT_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_DOT_OUTPUT_PATH);
+      System.out.println("Outputing dot file to: " + dotResultsPath);
+      File dotFile = new File(dotResultsPath);
       FileWriter fw = new FileWriter(dotFile);
       fw.append(sb);
       fw.flush();
       fw.close();
-      DotUtil.spawnDot(Util.getStringProperty("dotPath"), strPdfFile, dotFile);
+      String graphPdfPath = Util.getStringProperty(GRAPH_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_GRAPH_OUTPUT_PATH);
+      System.out.println("Outputing graph file to: " + graphPdfPath);
+      DotUtil.spawnDot(Util.getStringProperty(DOT_EXECUTABLE_PATH_PROPERTY_NAME), graphPdfPath, dotFile);
       
     }
   }

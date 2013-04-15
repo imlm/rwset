@@ -190,12 +190,14 @@ public class MethodDependencyAnalysis {
       // as not application classes can be parent of application
       // classes. 
       toVisit.addAll(cha.getImmediateSubclasses(cur));
-      for (IMethod imethod : cur.getAllMethods()) {
-        if (imethod.isNative() || imethod.isAbstract() || visited.contains(imethod)) { 
-          continue;
-        }        
-        visited.add(imethod);
-        updateRWSet(imethod);
+      if (Util.isAppClass(cur)) {
+        for (IMethod imethod : cur.getAllMethods()) {
+          if (imethod.isNative() || imethod.isAbstract() || visited.contains(imethod)) { 
+            continue;
+          }        
+          visited.add(imethod);
+          updateRWSet(imethod);
+        }  
       }
     }
   }

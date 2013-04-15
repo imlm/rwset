@@ -59,9 +59,7 @@ public class Main {
     // obtain methods that can write data to this method
     SimpleGraph depGraph = an.getDependencies(method, false, false);
     
-    // dump results in file: 
-//    Util.dumpResults(method, map);
-    
+    // dump results in file    
     Util.dumpResults(depGraph);
 
   }

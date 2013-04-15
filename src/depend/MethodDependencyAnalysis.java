@@ -311,13 +311,13 @@ public class MethodDependencyAnalysis {
    * @throws CancelException
    * @throws IOException
    **/
-  private void propagateRWSets(Graph<CGNode> graph) throws IllegalArgumentException, WalaException, CancelException, IOException {
+  private void propagateRWSets(Graph<CGNode> callGraph) throws IllegalArgumentException, WalaException, CancelException, IOException {
     /**
      * Propagate information across the edges of the control-flow graph.
      * For that, we use the reverse topological order so to reduce the 
      * number of iterations we need to process for computing fix point.
      */
-    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(graph));  
+    Iterator<CGNode> it = ReverseIterator.reverse(Topological.makeTopologicalIter(callGraph));  
     while (it.hasNext()) {                                                                
       CGNode node = it.next();
       IMethod cMethod = node.getMethod();
@@ -325,7 +325,7 @@ public class MethodDependencyAnalysis {
         continue;
       }
       RWSet rwSetC = null;
-      Iterator<CGNode> it2 = graph.getPredNodes(node);
+      Iterator<CGNode> it2 = callGraph.getPredNodes(node);
       while (it2.hasNext()) {
         CGNode p = it2.next();
         IMethod pMethod = p.getMethod();
@@ -362,8 +362,6 @@ public class MethodDependencyAnalysis {
     /********* find transitive method writers *********/    
     Map<FieldReference, String> reads = rwSets.get(method).readSet;    
     findDependency(method, result, reads);
-    
-    /********* find transitive method readers *********/
     
     return result;
   }

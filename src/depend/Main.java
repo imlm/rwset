@@ -25,12 +25,10 @@ public class Main {
   private static final String DOT_EXECUTABLE_PATH_PROPERTY_NAME = "dotPath";
 
   private static final String GRAPH_OUTPUT_PATH_PROPERTY_NAME = "graphFileOutputPath";
-//  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf"; 
-  private static final String DEFAULT_GRAPH_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.pdf";
+  private static final String DEFAULT_GRAPH_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.pdf"; 
   
   private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
-//  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
-  private static final String DEFAULT_DOT_OUTPUT_PATH = "/Users/sabrinasouto/tmp/results/results.dot";
+  private static final String DEFAULT_DOT_OUTPUT_PATH = System.getProperty("java.io.tmpdir") +  System.getProperty("file.separator") + "results.dot";
 
   /**
    * example of use for this class

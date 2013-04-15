@@ -9,6 +9,7 @@ cp `find dat -name "*.txt" | xargs` bin
 cp `find dat -name "*.xml" | xargs` bin
 cp `find dat -name "*.properties" | xargs` bin
 
+######################  generate jar file for application
 (cd bin;
     find examples -name "*.class" | xargs jar cvf examples.jar
     mv examples.jar ..

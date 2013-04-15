@@ -96,8 +96,9 @@ public class SimpleGraph {
     Descriptor desc = meth.getDescriptor();
     sb.append(toString(desc.getReturnType()));
     sb.append(" ");
-    sb.append(toString(meth.getDeclaringClass().getReference().getName()));    
-    
+    sb.append(toString(meth.getDeclaringClass().getReference().getName()));
+    sb.append(".");
+    sb.append(meth.getName());
     sb.append("(");
     TypeName[] paramTypes = desc.getParameters(); 
     for (int i = 0 ; i < desc.getNumberOfParameters(); i++) {

@@ -9,10 +9,11 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Map.Entry;
 
+import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
@@ -24,6 +25,7 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayReferenceInstruction;
@@ -245,7 +247,17 @@ public class MethodDependencyAnalysis {
         // A FieldReference object denotes an access (read or write) to a field 
         FieldReference fr = fai.getDeclaredField(); 
         Map<FieldReference, String> set = (kind == 0) ? readSet : writeSet;
-        set.put(fr, "Line:" + imethod.getLineNumber(i));
+        IBytecodeMethod method = (IBytecodeMethod)ir.getMethod();
+        try {
+          int bytecodeIndex = method.getBytecodeIndex(i);
+          int sourceLineNum = method.getLineNumber(bytecodeIndex);
+        //TODO: Improve this representation.
+          set.put(fr, " LINE:" + sourceLineNum + 
+                      ", CLASS OF FIELD DEFINITION: " + fr.getDeclaringClass() + 
+                      ", ACCESSED FIELD: " + fr.getName());
+        } catch (InvalidClassFileException e) {
+          e.printStackTrace();
+        }
         // remembering ssa-definition if one exists
         int def = fai.getDef();
         if (def != -1) {
@@ -259,7 +271,17 @@ public class MethodDependencyAnalysis {
         fr = ssaVar.get(arRef);
         if (fr != null) {
           set = (kind == 2) ? readSet : writeSet;
-          set.put(fr, "Line:" + imethod.getLineNumber(i));
+          IBytecodeMethod method1 = (IBytecodeMethod)ir.getMethod();
+          try {
+            int bytecodeIndex = method1.getBytecodeIndex(i);
+            int sourceLineNum = method1.getLineNumber(bytecodeIndex);
+            //TODO: Improve this representation.
+            set.put(fr, " LINE:" + sourceLineNum + 
+                        ", CLASS OF FIELD DEFINITION:" + fr.getDeclaringClass() + 
+                        ", ACCESSED FIELD: " + fr.getName());
+          } catch (InvalidClassFileException e) {
+            e.printStackTrace();
+          }
         }
         break;
       default:
@@ -269,6 +291,8 @@ public class MethodDependencyAnalysis {
 
     result = new RWSet(readSet, writeSet);
     rwSets.put(imethod, result);
+    
+    
   }
 
   /***

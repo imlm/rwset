@@ -1,7 +1,6 @@
 package depend;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Properties;
 
 import com.ibm.wala.classLoader.IClass;
@@ -14,6 +13,7 @@ import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.io.CommandLine;
 import com.ibm.wala.util.warnings.Warnings;
 
+import depend.util.SimpleGraph;
 import depend.util.Util;
 
 public class Main {
@@ -57,10 +57,12 @@ public class Main {
     }
     
     // obtain methods that can write data to this method
-    Map<IMethod,String> map = an.getDependencies(method, false, false);
+    SimpleGraph depGraph = an.getDependencies(method, false, false);
     
     // dump results in file: 
-    Util.dumpResults(method, map);
+//    Util.dumpResults(method, map);
+    
+    Util.dumpResults(depGraph);
 
   }
 

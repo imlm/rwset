@@ -1,9 +1,7 @@
 package depend;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import com.ibm.wala.types.FieldReference;
 
@@ -18,7 +16,7 @@ import com.ibm.wala.types.FieldReference;
  ***/
 public class RWSet {
   
-  protected Map<FieldReference,String> readSet, writeSet;
+  protected Map<FieldReference, String> readSet, writeSet;
   
   public RWSet(Map<FieldReference,String> readSet, Map<FieldReference,String> writeSet) {
     super();

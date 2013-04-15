@@ -46,6 +46,7 @@ import com.ibm.wala.util.warnings.Warnings;
 import com.ibm.wala.viz.DotUtil;
 
 import depend.util.CallGraphGenerator;
+import depend.util.SimpleGraph;
 import depend.util.Timer;
 import depend.util.Util;
 
@@ -351,13 +352,37 @@ public class MethodDependencyAnalysis {
   }
 
 
-  public Map<IMethod,String> getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
+  public SimpleGraph getDependencies(IMethod method, boolean onlyPublicClasses, boolean onlyPublicMethods) {
     if (method == null) {
       throw new RuntimeException("Could not find informed method!");
-    } 
-    Map<FieldReference, String> reads = rwSets.get(method).readSet;
-    Map<IMethod, String> result = new HashMap<IMethod, String>();
-    for (Entry<FieldReference, String> fread: reads.entrySet()) {
+    }
+    
+    SimpleGraph result = new SimpleGraph();
+    
+    /********* find transitive method writers *********/    
+    Map<FieldReference, String> reads = rwSets.get(method).readSet;    
+    findDependency(method, result, reads);
+    
+    /********* find transitive method readers *********/
+    
+    return result;
+  }
+
+  private void findDependency(IMethod method, SimpleGraph result,  Map<FieldReference, String> accesses) {
+    
+    boolean onlyPublicClasses = false;
+    
+    boolean onlyPublicMethods = false;    
+    
+    for (Entry<FieldReference, String> access: accesses.entrySet()) {
+      
+      FieldReference fr = access.getKey();
+      //FIXME: do not understand why this is a String!
+      String val = access.getValue();
+      //FIXME: this is horrible!  please, fix me.
+      String strInt = val.substring(val.indexOf("LINE:") + 5, val.indexOf(", CLASS OF"));
+      int line = Integer.parseInt(strInt) ;
+      
       for (Map.Entry<IMethod, RWSet> e1 : rwSets.entrySet()) {
         IMethod writer = e1.getKey();
         if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
@@ -366,13 +391,13 @@ public class MethodDependencyAnalysis {
         if (onlyPublicMethods && !writer.isPublic()) {
           continue;
         }
-        Map<FieldReference,String> writeSet = e1.getValue().writeSet;
-        if (writeSet.containsKey(fread.getKey())) {
-          result.put(writer, "." + writeSet.get(fread.getKey()));
+        Map<FieldReference, String> writeSet = e1.getValue().writeSet;
+        
+        if (writeSet.containsKey(fr)) {
+          result.getNode(writer).add(new SimpleGraph.Edge(method, fr, line));
         }
       }
     }
-    return result;
   }
 
 

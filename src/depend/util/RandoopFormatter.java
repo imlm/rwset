@@ -83,7 +83,6 @@ public class RandoopFormatter {
 
   private static String translatePrimitiveCode(String code) {
     String result;
-
     if (code.equals("Z")) {
       result = "boolean";
     } else if (code.equals("B")) {

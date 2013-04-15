@@ -186,6 +186,25 @@ public class Util {
       
     }
   }
+  
+  public static void dumpResults(SimpleGraph depGraph) throws IOException, WalaException {
+    String reportType = Util.getStringProperty(REPORT_TYPE_PROPERTY_NAME).trim();
+    if (reportType.equals("list")) {
+      System.out.println(depGraph.toString());
+    } else if (reportType.equals("dot")) {
+      // results.dot      
+      String dotResultsPath = Util.getStringProperty(DOT_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_DOT_OUTPUT_PATH);
+      System.out.println("Saving .dot file to: " + dotResultsPath);
+      File dotFile = new File(dotResultsPath);
+      FileWriter fw = new FileWriter(dotFile);
+      fw.append(depGraph.toDotString());
+      fw.flush();
+      fw.close();
+      String graphPdfPath = Util.getStringProperty(GRAPH_OUTPUT_PATH_PROPERTY_NAME, DEFAULT_GRAPH_OUTPUT_PATH);
+      System.out.println("Saving .pdf file to: " + graphPdfPath);
+      DotUtil.spawnDot(Util.getStringProperty(DOT_EXECUTABLE_PATH_PROPERTY_NAME), graphPdfPath, dotFile);
+    }
+  }
 
   /**
    * find all methods from the class hieararchy
@@ -259,7 +278,5 @@ public class Util {
     return allMethods;
     
   }
-
-
 
 }

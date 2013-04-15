@@ -1,6 +1,5 @@
 package depend;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,7 +33,10 @@ public class MultiLayerRWMappings implements RWMappings {
   @Override
   public void putOrMergeWrite(IMethod method, int sourceLineNumber,
       Set<FieldReference> writeRefs) {
-    RWSet rwSet = this.get(method, sourceLineNumber);
+    
+    throw new UnsupportedOperationException();
+    
+//    RWSet rwSet = this.get(method, sourceLineNumber);
 //    if(rwSet != null){
 //      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(Collections.<FieldReference>emptySet(), writeRefs)));
 //    } else {
@@ -45,7 +47,10 @@ public class MultiLayerRWMappings implements RWMappings {
   @Override
   public void putOrMergeRead(IMethod method, int sourceLineNumber,
       Set<FieldReference> readRefs) {
-    RWSet rwSet = this.get(method, sourceLineNumber);
+    
+    throw new UnsupportedOperationException();
+    
+//    RWSet rwSet = this.get(method, sourceLineNumber);
 //    if(rwSet != null){
 //      this.put(method, sourceLineNumber, rwSet.merge(new RWSet(readRefs, Collections.<FieldReference>emptySet())));
 //    } else {

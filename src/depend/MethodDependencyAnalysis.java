@@ -248,6 +248,7 @@ public class MethodDependencyAnalysis {
         try {
           int bytecodeIndex = method.getBytecodeIndex(i);
           int sourceLineNum = method.getLineNumber(bytecodeIndex);
+        //TODO: Improve this representation.
           set.put(fr, " LINE:" + sourceLineNum + 
                       ", CLASS OF FIELD DEFINITION: " + fr.getDeclaringClass() + 
                       ", ACCESSED FIELD: " + fr.getName());
@@ -271,6 +272,7 @@ public class MethodDependencyAnalysis {
           try {
             int bytecodeIndex = method1.getBytecodeIndex(i);
             int sourceLineNum = method1.getLineNumber(bytecodeIndex);
+            //TODO: Improve this representation.
             set.put(fr, " LINE:" + sourceLineNum + 
                         ", CLASS OF FIELD DEFINITION:" + fr.getDeclaringClass() + 
                         ", ACCESSED FIELD: " + fr.getName());

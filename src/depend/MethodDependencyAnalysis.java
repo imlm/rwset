@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
@@ -45,6 +44,7 @@ import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.warnings.Warnings;
 import com.ibm.wala.viz.DotUtil;
 
+import depend.RWSet.AccessInfo;
 import depend.util.CallGraphGenerator;
 import depend.util.SimpleGraph;
 import depend.util.Timer;
@@ -222,8 +222,8 @@ public class MethodDependencyAnalysis {
 
     IR ir = cache.getIRFactory().makeIR(imethod, Everywhere.EVERYWHERE, options.getSSAOptions());
     
-    Map<FieldReference, String> readSet = new HashMap<FieldReference, String>();
-    Map<FieldReference, String> writeSet = new HashMap<FieldReference, String>();
+    Set<RWSet.AccessInfo> readSet = new HashSet<RWSet.AccessInfo>();
+    Set<RWSet.AccessInfo> writeSet = new HashSet<RWSet.AccessInfo>();
     Map<Integer, FieldReference> ssaVar = new HashMap<Integer, FieldReference>();
     
     SSAInstruction[] instructions = ir.getInstructions(); 
@@ -247,15 +247,12 @@ public class MethodDependencyAnalysis {
         SSAFieldAccessInstruction fai = (SSAFieldAccessInstruction) ins;
         // A FieldReference object denotes an access (read or write) to a field 
         FieldReference fr = fai.getDeclaredField(); 
-        Map<FieldReference, String> set = (kind == 0) ? readSet : writeSet;
+        Set<RWSet.AccessInfo> set = (kind == 0) ? readSet : writeSet;
         IBytecodeMethod method = (IBytecodeMethod)ir.getMethod();
         try {
-          int bytecodeIndex = method.getBytecodeIndex(i);
-          int sourceLineNum = method.getLineNumber(bytecodeIndex);
-        //TODO: Improve this representation.
-          set.put(fr, " LINE:" + sourceLineNum + 
-                      ", CLASS OF FIELD DEFINITION: " + fr.getDeclaringClass() + 
-                      ", ACCESSED FIELD: " + fr.getName());
+          int sourceLineNum = method.getLineNumber(method.getBytecodeIndex(i));
+          AccessInfo accessInfo = RWSet.makeAccessInfo(method.getDeclaringClass(), method, sourceLineNum, fr.getDeclaringClass(), fr);
+          set.add(accessInfo);
         } catch (InvalidClassFileException e) {
           e.printStackTrace();
         }
@@ -274,12 +271,9 @@ public class MethodDependencyAnalysis {
           set = (kind == 2) ? readSet : writeSet;
           IBytecodeMethod method1 = (IBytecodeMethod)ir.getMethod();
           try {
-            int bytecodeIndex = method1.getBytecodeIndex(i);
-            int sourceLineNum = method1.getLineNumber(bytecodeIndex);
-            //TODO: Improve this representation.
-            set.put(fr, " LINE:" + sourceLineNum + 
-                        ", CLASS OF FIELD DEFINITION:" + fr.getDeclaringClass() + 
-                        ", ACCESSED FIELD: " + fr.getName());
+            int sourceLineNum = method1.getLineNumber(method1.getBytecodeIndex(i));
+            AccessInfo accessInfo = RWSet.makeAccessInfo(method1.getDeclaringClass(), method1, sourceLineNum, fr.getDeclaringClass(), fr);
+            set.add(accessInfo);
           } catch (InvalidClassFileException e) {
             e.printStackTrace();
           }
@@ -292,8 +286,6 @@ public class MethodDependencyAnalysis {
 
     result = new RWSet(readSet, writeSet);
     rwSets.put(imethod, result);
-    
-    
   }
 
   /***
@@ -345,8 +337,8 @@ public class MethodDependencyAnalysis {
           }
         }
         // propagate!
-        rwSetP.writeSet.putAll(rwSetC.writeSet);  
-        rwSetP.readSet.putAll(rwSetC.readSet);
+        rwSetP.writeSet.addAll(rwSetC.writeSet);  
+        rwSetP.readSet.addAll(rwSetC.readSet);
       }
     }
   }
@@ -360,43 +352,33 @@ public class MethodDependencyAnalysis {
     SimpleGraph result = new SimpleGraph();
     
     /********* find transitive method writers *********/    
-    Map<FieldReference, String> reads = rwSets.get(method).readSet;    
+    Set<AccessInfo> reads = rwSets.get(method).readSet;    
     findDependency(method, result, reads);
     
     return result;
   }
 
-  private void findDependency(IMethod method, SimpleGraph result,  Map<FieldReference, String> accesses) {
-    
+  private void findDependency(IMethod method, SimpleGraph result,  Set<AccessInfo> reads) {
     boolean onlyPublicClasses = false;
-    
     boolean onlyPublicMethods = false;    
-    
-    for (Entry<FieldReference, String> access: accesses.entrySet()) {
-      
-      FieldReference fr = access.getKey();
-      //FIXME: do not understand why this is a String!
-      String val = access.getValue();
-      //FIXME: this is horrible!  please, fix me.
-      String strInt = val.substring(val.indexOf("LINE:") + 5, val.indexOf(", CLASS OF"));
-      int line = Integer.parseInt(strInt) ;
-      
-      for (Map.Entry<IMethod, RWSet> e1 : rwSets.entrySet()) {
-        IMethod writer = e1.getKey();
+    for (AccessInfo access: reads) {
+      FieldReference fr = access.fieldDefinition;
+      int line = access.accessLineNumber;
+      for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
+        IMethod writer = entry.getKey();
         if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
           continue;
         }
         if (onlyPublicMethods && !writer.isPublic()) {
           continue;
         }
-        Map<FieldReference, String> writeSet = e1.getValue().writeSet;
-        
-        if (writeSet.containsKey(fr)) {
-          result.getNode(writer).add(new SimpleGraph.Edge(method, fr, line));
+        Set<AccessInfo> writeSet = entry.getValue().writeSet;
+        for (AccessInfo writeAccessInfo : writeSet) {
+          if (writeAccessInfo.fieldDefinition.equals(fr)) {
+            result.getNode(writer).add(new SimpleGraph.Edge(method, fr, line));
+          }
         }
       }
     }
   }
-
-
 }

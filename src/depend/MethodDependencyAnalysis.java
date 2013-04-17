@@ -405,8 +405,7 @@ public class MethodDependencyAnalysis {
         System.out.println("linha:" + line);
         continue;
       }
-      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access,
-          line);
+      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
     }
   }
 
@@ -415,15 +414,12 @@ public class MethodDependencyAnalysis {
     boolean onlyPublicClasses = false;
     boolean onlyPublicMethods = false;
     for (AccessInfo access : reads) {
-      int line = access.accessLineNumber;
-      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access,
-          line);
+      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
     }
   }
 
   private void fillGraph(IMethod method, SimpleGraph result,
-      boolean onlyPublicClasses, boolean onlyPublicMethods, AccessInfo access,
-      int line) {
+      boolean onlyPublicClasses, boolean onlyPublicMethods, AccessInfo access) {
     FieldReference fr = access.fieldDefinition;
     for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
       IMethod writer = entry.getKey();
@@ -436,7 +432,7 @@ public class MethodDependencyAnalysis {
       Set<AccessInfo> writeSet = entry.getValue().writeSet;
       for (AccessInfo writeAccessInfo : writeSet) {
         if (writeAccessInfo.fieldDefinition.equals(fr)) {
-          result.getNode(writer).add(new SimpleGraph.Edge(method, fr, line));
+          result.getNode(writer).add(new SimpleGraph.Edge(method, fr, writeAccessInfo.accessLineNumber));
         }
       }
     }

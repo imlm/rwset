@@ -7,7 +7,7 @@ java -cp ".:bin:libs/wala-r3501-slice.jar" \
     -printWalaWarnings=false \
     -exclusionFile=ExclusionAllJava.txt \
     -exclusionFileForCallGraph=ExclusionForCallGraph.txt \
-    -dotPath="/usr/local/bin/dot" \
+    -dotPath="/usr/bin/dot" \
     -appPrefix="examples" \
     -listAppClasses=false \
     -listAllClasses=false \

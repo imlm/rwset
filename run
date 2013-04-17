@@ -7,13 +7,14 @@ java -cp ".:bin:libs/wala-r3501-slice.jar" \
     -printWalaWarnings=false \
     -exclusionFile=ExclusionAllJava.txt \
     -exclusionFileForCallGraph=ExclusionForCallGraph.txt \
-    -dotPath="/usr/bin/dot" \
+    -dotPath="/usr/local/bin/dot" \
     -appPrefix="examples" \
     -listAppClasses=false \
     -listAllClasses=false \
     -listAppMethods=false \
     -genCallGraph=false \
     -measureTime=false \
+    -targetLine="15" \
     -targetClass="Lexamples/B" \
     -targetMethod="n(Lexamples/A;Lexamples/C;)V" \
     -reportType=dot ## [list, dot]

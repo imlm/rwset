@@ -56,9 +56,14 @@ public class Main {
       throw new RuntimeException("Could not find method \"" + strMethod + "\" in " + clazz.getName());
     }
     
-    // obtain methods that can write data to this method
-    SimpleGraph depGraph = an.getDependencies(method, false, false);
-    
+    String strLine = Util.getStringProperty("targetLine");
+    SimpleGraph depGraph;
+    if (strLine != null && !strLine.isEmpty()) {
+      depGraph = an.getDependencies(method, false, false, Integer.valueOf(strLine));
+    } else {
+      // obtain methods that can write data to this method
+      depGraph = an.getDependencies(method, false, false, -1);
+    }
     // dump results in file    
     Util.dumpResults(depGraph);
 

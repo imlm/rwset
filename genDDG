@@ -1,0 +1,20 @@
+#!/bin/bash
+
+
+java -cp ".:bin:libs/wala-r3501-slice.jar" \
+    depend.Main \
+    -appJar=examples.jar \
+    -printWalaWarnings=false \
+    -exclusionFile=ExclusionAllJava.txt \
+    -exclusionFileForCallGraph=ExclusionForCallGraph.txt \
+    -dotPath="/usr/bin/dot" \
+    -appPrefix="examples" \
+    -listAppClasses=false \
+    -listAllClasses=false \
+    -listAppMethods=false \
+    -genCallGraph=false \
+    -measureTime=false \
+    -targetLine="22" \
+    -targetClass="Lexamples/B" \
+    -targetMethod="n_(Lexamples/A;Lexamples/C;)V" \
+    -reportType=dot ## [list, dot]

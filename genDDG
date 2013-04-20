@@ -1,14 +1,38 @@
 #!/bin/bash
 
+source common
 
+## takes parameter if one is passed
+## otherwise, uses "examples" as 
+## default name
+if [ -z "$1" ];
+then
+    NAME="examples"
+else
+    NAME="$1"
+fi
+
+## complete this as you add new examples
+case "$NAME" in
+    "101" ) 
+	JARFILE="101.jar"
+	PREFIX="org/softlang"
+	;;
+    * ) 
+	JARFILE="examples.jar"
+	PREFIX="examples"
+	;;
+esac
+
+## call java depend.Main
 java -cp ".:bin:libs/wala-r3501-slice.jar" \
     depend.Main \
-    -appJar=examples.jar \
+    -appJar=${JARFILE} \
     -printWalaWarnings=false \
     -exclusionFile=ExclusionAllJava.txt \
     -exclusionFileForCallGraph=ExclusionForCallGraph.txt \
-    -dotPath="/usr/bin/dot" \
-    -appPrefix="examples" \
+    -dotPath=${DOTPATH} \
+    -appPrefix=${PREFIX} \
     -listAppClasses=false \
     -listAllClasses=false \
     -listAppMethods=false \

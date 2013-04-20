@@ -19,7 +19,7 @@ public class InstrumentationAgent {
    * This method is the entry point of the java agent.
    */
   public static void premain (String agentArgs, Instrumentation inst) throws IOException {
-    System.out.printf("> %s" , agentArgs);
+      //System.out.printf("> %s" , agentArgs);
     inst.addTransformer(new ClassInstrumenter());
   }
 }

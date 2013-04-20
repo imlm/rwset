@@ -402,7 +402,7 @@ public class MethodDependencyAnalysis {
     for (AccessInfo access : reads) {
       int line = access.accessLineNumber;
       if (line != strLine) {
-        System.out.println("linha:" + line);
+	// System.out.println("linha:" + line);
         continue;
       }
       fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);

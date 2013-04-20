@@ -15,12 +15,20 @@ fi
 ## complete this as you add new examples
 case "$NAME" in
     "101" ) 
+	### 101 project
 	JARFILE="101.jar"
 	PREFIX="org/softlang"
+	LINE="37"
+	CLASS="Lorg/softlang/swing/model/Model"
+	METHOD="getTotal()Ljava/lang/String;"
 	;;
     * ) 
+	### default
 	JARFILE="examples.jar"
 	PREFIX="examples"
+	LINE="22"
+	CLASS="Lexamples/B"
+	METHOD="n_(Lexamples/A;Lexamples/C;)V"
 	;;
 esac
 
@@ -38,7 +46,7 @@ java -cp ".:bin:libs/wala-r3501-slice.jar" \
     -listAppMethods=false \
     -genCallGraph=false \
     -measureTime=false \
-    -targetLine="22" \
-    -targetClass="Lexamples/B" \
-    -targetMethod="n_(Lexamples/A;Lexamples/C;)V" \
+    -targetLine=${LINE} \
+    -targetClass=${CLASS} \
+    -targetMethod=${METHOD} \
     -reportType=dot ## [list, dot]

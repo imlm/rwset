@@ -2,3 +2,7 @@ temp.dt
 bin/
 *~
 examples.jar
+iagent.jar
+101.jar
+results/results.dot
+results/results.pdf

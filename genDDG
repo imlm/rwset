@@ -1,0 +1,52 @@
+#!/bin/bash
+
+source common
+
+## takes parameter if one is passed
+## otherwise, uses "examples" as 
+## default name
+if [ -z "$1" ];
+then
+    NAME="examples"
+else
+    NAME="$1"
+fi
+
+## complete this as you add new examples
+case "$NAME" in
+    "101" ) 
+	### 101 project
+	JARFILE="101.jar"
+	PREFIX="org/softlang"
+	LINE="37"
+	CLASS="Lorg/softlang/swing/model/Model"
+	METHOD="getTotal()Ljava/lang/String;"
+	;;
+    * ) 
+	### default
+	JARFILE="examples.jar"
+	PREFIX="examples"
+	LINE="22"
+	CLASS="Lexamples/B"
+	METHOD="n_(Lexamples/A;Lexamples/C;)V"
+	;;
+esac
+
+## call java depend.Main
+java -cp ".:bin:libs/wala-r3501-slice.jar" \
+    depend.Main \
+    -appJar=${JARFILE} \
+    -printWalaWarnings=false \
+    -exclusionFile=ExclusionAllJava.txt \
+    -exclusionFileForCallGraph=ExclusionForCallGraph.txt \
+    -dotPath=${DOTPATH} \
+    -appPrefix=${PREFIX} \
+    -listAppClasses=false \
+    -listAllClasses=false \
+    -listAppMethods=false \
+    -genCallGraph=false \
+    -measureTime=false \
+    -targetLine=${LINE} \
+    -targetClass=${CLASS} \
+    -targetMethod=${METHOD} \
+    -reportType=dot ## [list, dot]

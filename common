@@ -1,0 +1,13 @@
+#!/bin/bash
+
+CURRDIR=`pwd`
+BINDIR=${CURRDIR}/bin
+LIBDIR=${CURRDIR}/libs
+
+CLASSPATH=$BINDIR
+for x in `ls $LIBDIR/*.jar`
+do
+    CLASSPATH=$CLASSPATH:$x
+done
+
+DOTPATH="/usr/bin/dot"

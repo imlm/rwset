@@ -1,4 +1,4 @@
-package org.softlang.swing.view;
+package companies101.org.softlang.swing.view;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -7,35 +7,36 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.softlang.company.Department;
-import org.softlang.swing.model.Model;
+import companies101.org.softlang.company.Company;
+import companies101.org.softlang.swing.model.Model;
 
 /**
- * This class provides the gui for department information and department changes.
+ * This class provides the gui for company information and company changes.
  * 
  * @author Tobias Zimmer, Eduard Ditler, Hanna-Marike Reger, Helena Swerdlow,
  *         Jan Ruether
  */
-public class DepartmentView extends AbstractView {
+public class CompanyView extends AbstractView {
 	
 	/** automatically generated serialVersionUID */
-	private static final long serialVersionUID = 6814479671011781474L;
+	private static final long serialVersionUID = 4713058639510381461L;
 	
 	/**
 	 * Constructor.
 	 * 
 	 * @param model
 	 */
-	public DepartmentView(Model model) {
+	public CompanyView(Model model) {
 		super(model);
 		createView();
+		this.setVisible(true);
 	}
-	
+
 	/*
 	 * create GUI components 
 	 */
 	private void createView() {
-		Department department = (Department) model.getCurrentValue();
+		Company company = (Company)model.getCurrentValue();
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		
@@ -49,7 +50,7 @@ public class DepartmentView extends AbstractView {
 		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
-		name.setText(department.getName());
+		name.setText(company.getName());
 		this.add(name, c);
 		
 		// total
@@ -63,7 +64,7 @@ public class DepartmentView extends AbstractView {
 		c.weightx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;		
 		total.setText(model.getTotal());
-		total.setEditable(false);		
+		total.setEditable(false);
 		this.add(total, c);
 		
 		// cut
@@ -73,7 +74,6 @@ public class DepartmentView extends AbstractView {
 		c.weightx = 0;
 		c.fill = GridBagConstraints.NONE;
 		c.anchor = GridBagConstraints.CENTER;
-
 		this.add(cut, c);
 		
 		// filler
@@ -82,4 +82,5 @@ public class DepartmentView extends AbstractView {
 		c.fill = GridBagConstraints.VERTICAL;
 		this.add(new JPanel(), c);
 	}
+
 }

@@ -1,8 +1,8 @@
-package org.softlang.tests;
+package companies101.org.softlang.tests;
 
-import org.softlang.swing.controller.Controller;
-import org.softlang.swing.model.Model;
-import org.softlang.swing.view.MainView;
+import companies101.org.softlang.swing.controller.Controller;
+import companies101.org.softlang.swing.model.Model;
+import companies101.org.softlang.swing.view.MainView;
 
 /**
  * This class initializes the MVC-structure of the project. Based on the very

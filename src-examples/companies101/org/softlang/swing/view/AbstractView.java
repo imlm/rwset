@@ -1,4 +1,4 @@
-package org.softlang.swing.view;
+package companies101.org.softlang.swing.view;
 
 import java.awt.event.ActionListener;
 import java.awt.event.KeyListener;
@@ -7,7 +7,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.softlang.swing.model.Model;
+import companies101.org.softlang.swing.model.Model;
 
 /**
  * This abstract class provides the main components for all possible views:

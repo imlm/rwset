@@ -1,11 +1,11 @@
-package org.softlang.swing.model;
+package companies101.org.softlang.swing.model;
 
-import org.softlang.company.Basic;
-import org.softlang.company.Company;
-import org.softlang.company.Department;
-import org.softlang.company.Employee;
-import org.softlang.operations.Cut;
-import org.softlang.operations.Total;
+import companies101.org.softlang.company.Basic;
+import companies101.org.softlang.company.Company;
+import companies101.org.softlang.company.Department;
+import companies101.org.softlang.company.Employee;
+import companies101.org.softlang.operations.Cut;
+import companies101.org.softlang.operations.Total;
 
 /**
  * The data model.
@@ -22,7 +22,9 @@ public class Model {
 	 */
 	public Model() {
 		// The serialized object has been copied over from elsewhere
-		company = Company.readObject("sampleCompany.ser");
+	  // You need to save your own
+		//company = Company.readObject("sampleCompany.ser");
+	  company = new Company();
 	}
 
 	/**

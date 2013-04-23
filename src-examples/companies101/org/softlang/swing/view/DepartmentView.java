@@ -1,4 +1,4 @@
-package org.softlang.swing.view;
+package companies101.org.softlang.swing.view;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -7,36 +7,35 @@ import java.awt.Insets;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import org.softlang.company.Company;
-import org.softlang.swing.model.Model;
+import companies101.org.softlang.company.Department;
+import companies101.org.softlang.swing.model.Model;
 
 /**
- * This class provides the gui for company information and company changes.
+ * This class provides the gui for department information and department changes.
  * 
  * @author Tobias Zimmer, Eduard Ditler, Hanna-Marike Reger, Helena Swerdlow,
  *         Jan Ruether
  */
-public class CompanyView extends AbstractView {
+public class DepartmentView extends AbstractView {
 	
 	/** automatically generated serialVersionUID */
-	private static final long serialVersionUID = 4713058639510381461L;
+	private static final long serialVersionUID = 6814479671011781474L;
 	
 	/**
 	 * Constructor.
 	 * 
 	 * @param model
 	 */
-	public CompanyView(Model model) {
+	public DepartmentView(Model model) {
 		super(model);
 		createView();
-		this.setVisible(true);
 	}
-
+	
 	/*
 	 * create GUI components 
 	 */
 	private void createView() {
-		Company company = (Company)model.getCurrentValue();
+		Department department = (Department) model.getCurrentValue();
 		this.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		
@@ -50,7 +49,7 @@ public class CompanyView extends AbstractView {
 		c.gridx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
-		name.setText(company.getName());
+		name.setText(department.getName());
 		this.add(name, c);
 		
 		// total
@@ -64,7 +63,7 @@ public class CompanyView extends AbstractView {
 		c.weightx = 1;
 		c.fill = GridBagConstraints.HORIZONTAL;		
 		total.setText(model.getTotal());
-		total.setEditable(false);
+		total.setEditable(false);		
 		this.add(total, c);
 		
 		// cut
@@ -74,6 +73,7 @@ public class CompanyView extends AbstractView {
 		c.weightx = 0;
 		c.fill = GridBagConstraints.NONE;
 		c.anchor = GridBagConstraints.CENTER;
+
 		this.add(cut, c);
 		
 		// filler
@@ -82,5 +82,4 @@ public class CompanyView extends AbstractView {
 		c.fill = GridBagConstraints.VERTICAL;
 		this.add(new JPanel(), c);
 	}
-
 }

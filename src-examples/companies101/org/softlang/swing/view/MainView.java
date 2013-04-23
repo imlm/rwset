@@ -1,4 +1,4 @@
-package org.softlang.swing.view;
+package companies101.org.softlang.swing.view;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -15,10 +15,10 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 
-import org.softlang.company.Company;
-import org.softlang.company.Department;
-import org.softlang.company.Employee;
-import org.softlang.swing.model.Model;
+import companies101.org.softlang.company.Company;
+import companies101.org.softlang.company.Department;
+import companies101.org.softlang.company.Employee;
+import companies101.org.softlang.swing.model.Model;
 
 /**
  * This class manages the main GUI components.

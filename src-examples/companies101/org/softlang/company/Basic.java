@@ -1,4 +1,4 @@
-package org.softlang.company;
+package companies101.org.softlang.company;
 
 /**
  * This class provides methods for the identification of company-objects in

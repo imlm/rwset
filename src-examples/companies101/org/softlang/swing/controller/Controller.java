@@ -1,20 +1,20 @@
-package org.softlang.swing.controller;
+package companies101.org.softlang.swing.controller;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
-import org.softlang.company.Basic;
-import org.softlang.swing.model.Model;
-import org.softlang.swing.view.CompanyView;
-import org.softlang.swing.view.DepartmentView;
-import org.softlang.swing.view.EmployeeView;
-import org.softlang.swing.view.MainView;
 
 import javax.swing.JPanel;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
+import companies101.org.softlang.company.Basic;
+import companies101.org.softlang.swing.model.Model;
+import companies101.org.softlang.swing.view.CompanyView;
+import companies101.org.softlang.swing.view.DepartmentView;
+import companies101.org.softlang.swing.view.EmployeeView;
+import companies101.org.softlang.swing.view.MainView;
 
 public class Controller {
 

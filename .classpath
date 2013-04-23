@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-instr"/>
-	<classpathentry kind="src" path="src-101Companies"/>
+	<classpathentry kind="src" path="src-examples"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="libs/wala-r3501-slice.jar"/>
 	<classpathentry kind="lib" path="libs/asm-4.0-src.zip"/>

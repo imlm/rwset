@@ -1,6 +1,8 @@
-package org.softlang.operations;
+package companies101.org.softlang.operations;
 
-import org.softlang.company.*;
+import companies101.org.softlang.company.Company;
+import companies101.org.softlang.company.Department;
+import companies101.org.softlang.company.Employee;
 
 /**
  * This class provides the main feature "cut" of 101companies.

@@ -1,4 +1,4 @@
-package org.softlang.company;
+package companies101.org.softlang.company;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -28,7 +28,8 @@ public class Company extends Basic implements Serializable {
 
     try {
       FileInputStream fis = new FileInputStream(System.getProperty("user.dir")
-          + System.getProperty("file.separator") + "src-101Companies"
+          + System.getProperty("file.separator") + "src-examples"
+          + System.getProperty("file.separator") + "companies101"
           + System.getProperty("file.separator") + filename);
       ObjectInputStream in = new ObjectInputStream(fis);
       o = in.readObject();
@@ -50,7 +51,10 @@ public class Company extends Basic implements Serializable {
     ObjectOutputStream out = null;
 
     try {
-      fos = new FileOutputStream(filename);
+      fos = new FileOutputStream(System.getProperty("user.dir")
+          + System.getProperty("file.separator") + "src-examples"
+          + System.getProperty("file.separator") + "companies101"
+          + System.getProperty("file.separator") + filename);
       out = new ObjectOutputStream(fos);
       out.writeObject(this);
       out.close();

@@ -1,4 +1,4 @@
-package org.softlang.swing.view;
+package companies101.org.softlang.swing.view;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -9,8 +9,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import org.softlang.company.Employee;
-import org.softlang.swing.model.Model;
+import companies101.org.softlang.company.Employee;
+import companies101.org.softlang.swing.model.Model;
 
 /**
  * This class provides the gui for employee information and employee changes.

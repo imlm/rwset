@@ -58,12 +58,11 @@ public class Main {
     
     String strLine = Util.getStringProperty("targetLine");
     SimpleGraph depGraph;
+    int line = -1;
     if (strLine != null && !strLine.isEmpty()) {
-      depGraph = an.getDependencies(method, false, false, Integer.valueOf(strLine));
-    } else {
-      // obtain methods that can write data to this method
-      depGraph = an.getDependencies(method, false, false, -1);
-    }
+      line = Integer.valueOf(strLine);      
+    } 
+    depGraph = an.getDependencies(method, false, false, line);
     // dump results in file    
     Util.dumpResults(depGraph);
 

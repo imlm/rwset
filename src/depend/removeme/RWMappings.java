@@ -1,10 +1,11 @@
-package depend;
-
+package depend.removeme;
 import java.util.Map;
 import java.util.Set;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.FieldReference;
+
+import depend.RWSet;
 
 /**
  * This interface describe methods for defining mappings of source lines in methods to {@link RWSet}s.

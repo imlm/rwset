@@ -17,9 +17,9 @@ case "$NAME" in
     "101" ) 
 	### 101 project
 	JARFILE="101.jar"
-	PREFIX="org/softlang"
+	PREFIX="companies101/org/softlang"
 	LINE="37"
-	CLASS="Lorg/softlang/swing/model/Model"
+	CLASS="Lcompanies101/org/softlang/swing/model/Model"
 	METHOD="getTotal()Ljava/lang/String;"
 	;;
     * ) 

@@ -1,4 +1,4 @@
-package depend;
+package depend.removeme;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +7,8 @@ import java.util.Set;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.FieldReference;
+
+import depend.RWSet;
 
 /**
  * {@link RWMappings} that is backed up by a map of maps.

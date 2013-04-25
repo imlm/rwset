@@ -1,4 +1,5 @@
-List of scripts in this directory, in alphabetical order.
+This documents lists and shortly describes the scripts in this
+directory.  The list in alphabetical order:
 
  build
  common
@@ -7,7 +8,7 @@ List of scripts in this directory, in alphabetical order.
  genDDG
  run
 
-- build: compiles all source code and updates /bin directory
+- build: compiles all source code and updates directory /bin
 
 - common: sets up variables used in several scripts
 
@@ -20,14 +21,14 @@ List of scripts in this directory, in alphabetical order.
 - run: instruments and runs a Java program
 
 
-Example Scenario 1:
+Example of use 1 (Scenario "dependency graph"):
 
 $> ./build
 $> ./genAppJar
 $> ./genDDG
 $> acroread results/results.pdf
 
-Example Scenario 2:
+Example of use 2 (Scenario "program instrumentation"):
 
  $> ./build
  $> ./genAgent

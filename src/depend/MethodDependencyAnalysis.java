@@ -43,7 +43,6 @@ import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.warnings.Warnings;
 import com.ibm.wala.viz.DotUtil;
 
-import depend.RWSet.AccessInfo;
 import depend.util.CallGraphGenerator;
 import depend.util.SimpleGraph;
 import depend.util.Timer;
@@ -247,8 +246,8 @@ public class MethodDependencyAnalysis {
     IR ir = cache.getIRFactory().makeIR(imethod, Everywhere.EVERYWHERE,
         options.getSSAOptions());
 
-    Set<RWSet.AccessInfo> readSet = new HashSet<RWSet.AccessInfo>();
-    Set<RWSet.AccessInfo> writeSet = new HashSet<RWSet.AccessInfo>();
+    Set<AccessInfo> readSet = new HashSet<AccessInfo>();
+    Set<AccessInfo> writeSet = new HashSet<AccessInfo>();
     Map<Integer, FieldReference> ssaVar = new HashMap<Integer, FieldReference>();
 
     SSAInstruction[] instructions = ir.getInstructions();
@@ -274,7 +273,7 @@ public class MethodDependencyAnalysis {
         SSAFieldAccessInstruction fai = (SSAFieldAccessInstruction) ins;
         // A FieldReference object denotes an access (read or write) to a field
         FieldReference fr = fai.getDeclaredField();
-        Set<RWSet.AccessInfo> set = (kind == 0) ? readSet : writeSet;
+        Set<AccessInfo> set = (kind == 0) ? readSet : writeSet;
         IBytecodeMethod method = (IBytecodeMethod) ir.getMethod();
         try {
           int sourceLineNum = method.getLineNumber(method.getBytecodeIndex(i));

@@ -12,7 +12,7 @@ fi
 
 case "$NAME" in
     "101" ) 
-	PREFIX="org/softlang"
+	PREFIX="companies101/org/softlang"
 	;;
     * ) 
 	PREFIX="examples"

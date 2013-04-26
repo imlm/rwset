@@ -26,7 +26,7 @@ public class Util {
 
   private static Properties PROPS;
   
-  private static final String OUTPUT_PATH = System.getProperty("user.dir") +  System.getProperty("file.separator") + "results" + System.getProperty("file.separator");
+  private static final String OUTPUT_PATH = System.getProperty("user.dir") + System.getProperty("file.separator") + "results" + System.getProperty("file.separator");
 
   private static final String DEFAULT_GRAPH_OUTPUT_PATH = OUTPUT_PATH + "results.pdf"; 
     

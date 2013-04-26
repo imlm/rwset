@@ -1,5 +1,7 @@
 package depend;
 
+import japa.parser.ParseException;
+
 import java.io.IOException;
 import java.util.Properties;
 
@@ -20,7 +22,7 @@ public class Main {
 
 
   /**
-   * example of use for this class
+   * entry point when running the analysis from the command-line
    * 
    * @param args currently hard-coded (modify appJar)
    * 
@@ -30,21 +32,13 @@ public class Main {
    * @throws CancelException
    * @throws InterruptedException 
    */
-  public static void main(String[] args) throws IOException, IllegalArgumentException, WalaException, CancelException, InterruptedException {
-    
-    // reading and saving command-line properties
-    Properties p = CommandLine.parse(args);
-    Util.setProperties(p);
-    
-    // clearing warnings from WALA
-    Warnings.clear();
-    
-    // performing dependency analysis
-    MethodDependencyAnalysis an = new MethodDependencyAnalysis(p);
+  public static void main(String[] args) throws IOException, IllegalArgumentException, WalaException, CancelException, InterruptedException {    
+
+    MethodDependencyAnalysis mDepAn = createMDA(args);
     
     // find informed class
     String strClass = Util.getStringProperty("targetClass");
-    IClass clazz = an.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
+    IClass clazz = mDepAn.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
     if (clazz == null) {
       throw new RuntimeException("Could not find class \"" + strClass + "\"");
     }
@@ -56,16 +50,134 @@ public class Main {
       throw new RuntimeException("Could not find method \"" + strMethod + "\" in " + clazz.getName());
     }
     
+    run(mDepAn, method);
+
+  }
+
+  private static void run(MethodDependencyAnalysis mDepAn, IMethod method) throws IOException, WalaException, CancelException {
+    // run the dependency analysis
+    mDepAn.run();
+    
+    // decide whether or not will filter results based on lines
+    // TODO: solution needs to consider control flow.  it 
+    // is more elaborate than this. -Marcelo
     String strLine = Util.getStringProperty("targetLine");
     SimpleGraph depGraph;
     int line = -1;
     if (strLine != null && !strLine.isEmpty()) {
       line = Integer.valueOf(strLine);      
     } 
-    depGraph = an.getDependencies(method, false, false, line);
-    // dump results in file    
+    
+    // build dependency graph
+    depGraph = mDepAn.getDependencies(method, false, false, line);
+    // dump results
     Util.dumpResults(depGraph);
-
   }
+
+  private static MethodDependencyAnalysis createMDA(String[] args)
+      throws IOException, WalaException, CancelException {
+    // reading and saving command-line properties
+    Properties p = CommandLine.parse(args);
+    Util.setProperties(p);
+    
+    // clearing warnings from WALA
+    Warnings.clear();
+    
+    // performing dependency analysis
+    MethodDependencyAnalysis mDepAn = new MethodDependencyAnalysis(p);
+    return mDepAn;
+  }
+  
+  /************ programmatic interface **************/
+  
+  /**
+   * Analyze method dependencies for an informed specific 
+   * source line selected from the compilation unit.
+   *   
+   * This method generates a pdf file with the dependency
+   * graph in the output directory  
+   * 
+   * 
+   * @param appJar
+   * @param appPrefix
+   * @param strCompUnit
+   * @param targetLineContents
+   * @throws IOException
+   * @throws WalaException
+   * @throws CancelException
+   * @throws ParseException
+   */
+  public static void analyze(
+      String appJar,  
+      String appPrefix,
+      String strCompUnit,
+      String targetLineContents) throws IOException, WalaException, CancelException, ParseException {
+    
+    // line number and class in WALA format 
+    String[] lineAndClass = 
+        depend.util.parser.Util.getLineAndWALAClassName(targetLineContents+"", strCompUnit);
+    int targetLine = Integer.parseInt(lineAndClass[0]);
+    String targetClass = lineAndClass[1];    
+    
+    String USER_DIR = System.getProperty("user.dir");
+    String SEP = System.getProperty("file.separator");
+    
+    // default values
+    String exclusionFile = USER_DIR + SEP + "dat" + SEP + "ExclusionAllJava.txt";
+    String exclusionFileForCallGraph = USER_DIR + SEP + "dat" + SEP + "exclusionFileForCallGraph";
+    String dotPath = "/usr/bin/dot";
+    
+    String[] args = new String[] {
+        "-appJar="+appJar, 
+        "-printWalaWarnings="+false, 
+        "-exclusionFile="+exclusionFile, 
+        "-exclusionFileForCallGraph="+exclusionFileForCallGraph, 
+        "-dotPath="+dotPath, 
+        "-appPrefix="+appPrefix,
+        "-listAppClasses="+false, 
+        "-listAllClasses="+false, 
+        "-listAppMethods="+false, 
+        "-genCallGraph="+false, 
+        "-measureTime="+false, 
+        "-reportType="+"dot"
+    };
+    
+    MethodDependencyAnalysis mda = createMDA(args);
+    
+    // find informed class
+    String strClass = Util.getStringProperty("targetClass");
+    IClass clazz = mda.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, targetClass));
+    if (clazz == null) {
+      throw new RuntimeException("Could not find class \"" + strClass + "\"");
+    }
+    // find informed method
+    IMethod imethod = locateMethod(clazz, targetLine);
+    
+    // run the analysis
+    run(mda, imethod);    
+    
+  }
+
+  private static IMethod locateMethod(IClass clazz, int targetLine) {
+    IMethod result = null;
+    int loS = -1;
+    for (IMethod iMethod : clazz.getDeclaredMethods()) {
+      int ln = iMethod.getLineNumber(0);
+      if (result == null) {
+        result = iMethod;
+        loS = ln;
+      }
+      if (loS <= targetLine && loS < ln) {
+        loS = ln;
+        result = iMethod;
+      }
+    }
+    if (result == null) {
+      throw new RuntimeException("could not find informed method");
+    }
+    return result;
+  }
+  
+
 
 }

@@ -78,7 +78,8 @@ public class MethodDependencyAnalysis {
   private static AnalysisCache cache;
   // application(instance)-specific caches
   private Map<IMethod, RWSet> rwSets = new HashMap<IMethod, RWSet>();
-
+  Timer timer = new Timer();
+  Properties p;
   /**
    * parse input and call init
    * 
@@ -90,10 +91,11 @@ public class MethodDependencyAnalysis {
    */
   public MethodDependencyAnalysis(Properties p) throws IOException,
       IllegalArgumentException, WalaException, CancelException {
-    init(p);
-    if (Util.getBooleanProperty("printWalaWarnings")) {
-      System.out.println(Warnings.asString());
-    }
+    
+    this.p = p;  
+    
+    setup();
+    
   }
 
   /**
@@ -124,45 +126,10 @@ public class MethodDependencyAnalysis {
    * @throws WalaException
    * @throws CancelException
    */
-  private void init(Properties p) throws IOException, ClassHierarchyException,
+  public void run() throws IOException, ClassHierarchyException,
       WalaException, CancelException {
-
-    String appJar = (String) p.get("appJar");
-    if (appJar == null) {
-      throw new UnsupportedOperationException(
-          "expected command-line to include -appJar");
-    }
-    String exclusionFile = p.getProperty("exclusionFile",
-        CallGraphTestUtil.REGRESSION_EXCLUSIONS);
-    Warnings.clear();
-    File tmp = (exclusionFile != null) ? (new FileProvider())
-        .getFile(exclusionFile) : new File(
-        CallGraphTestUtil.REGRESSION_EXCLUSIONS);
-
-    Timer timer = new Timer();
+    
     boolean debugTime = Boolean.parseBoolean(p.getProperty("measureTime"));
-
-    if (debugTime) {
-      timer.start();
-    }
-    // very important: define scope of analysis!
-    // + relevant: what is in appJar and Java libraries
-    // - not relevant: what is in exclusionFile
-    scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar, tmp);
-    if (debugTime) {
-      timer.stop();
-      System.out.println("<< timing");
-      timer.show("done building scope");
-    }
-
-    // Class Hierarchy Analysis (CHA)
-    cha = ClassHierarchy.make(scope);
-    options = new AnalysisOptions(scope, null);
-    cache = new AnalysisCache();
-    if (debugTime) {
-      timer.stop();
-      timer.show("done building CHA");
-    }
 
     // Extracting direct read-write sets for all methods
     // and classes within the analysis scope
@@ -201,7 +168,55 @@ public class MethodDependencyAnalysis {
     if (debugTime) {
       System.out.println(">> timing");
     }
+    
+    if (Util.getBooleanProperty("printWalaWarnings")) {
+      System.out.println(Warnings.asString());
+    }
 
+  }
+
+  private void setup() throws IOException,
+      ClassHierarchyException {
+    String appJar = (String) p.get("appJar");
+    if (appJar == null) {
+      throw new UnsupportedOperationException(
+          "expected command-line to include -appJar");
+    }
+    
+    String exclusionFile = p.getProperty("exclusionFile", CallGraphTestUtil.REGRESSION_EXCLUSIONS);
+    Warnings.clear();
+    
+    File tmp;
+    if (exclusionFile != null) {
+      tmp = new FileProvider().getFile(exclusionFile); 
+    } else {
+      tmp = new File(CallGraphTestUtil.REGRESSION_EXCLUSIONS);
+    }
+
+    boolean debugTime = Boolean.parseBoolean(p.getProperty("measureTime"));
+
+    if (debugTime) {
+      timer.start();
+    }
+    // very important: define scope of analysis!
+    // + relevant: what is in appJar and Java libraries
+    // - not relevant: what is in exclusionFile
+    
+    scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(appJar, tmp);
+    if (debugTime) {
+      timer.stop();
+      System.out.println("<< timing");
+      timer.show("done building scope");
+    }
+
+    // Class Hierarchy Analysis (CHA)
+    cha = ClassHierarchy.make(scope);
+    options = new AnalysisOptions(scope, null);
+    cache = new AnalysisCache();
+    if (debugTime) {
+      timer.stop();
+      timer.show("done building CHA");
+    }
   }
 
   /**

@@ -50,11 +50,14 @@ public class Main {
       throw new RuntimeException("Could not find method \"" + strMethod + "\" in " + clazz.getName());
     }
     
-    run(mDepAn, method);
+    SimpleGraph depGraph = run(mDepAn, method);
+    
+    // dump results
+    Util.dumpResults(depGraph);
 
   }
 
-  private static void run(MethodDependencyAnalysis mDepAn, IMethod method) throws IOException, WalaException, CancelException {
+  private static SimpleGraph run(MethodDependencyAnalysis mDepAn, IMethod method) throws IOException, WalaException, CancelException {
     // run the dependency analysis
     mDepAn.run();
     
@@ -62,16 +65,15 @@ public class Main {
     // TODO: solution needs to consider control flow.  it 
     // is more elaborate than this. -Marcelo
     String strLine = Util.getStringProperty("targetLine");
-    SimpleGraph depGraph;
+    
     int line = -1;
     if (strLine != null && !strLine.isEmpty()) {
       line = Integer.valueOf(strLine);      
     } 
     
     // build dependency graph
-    depGraph = mDepAn.getDependencies(method, false, false, line);
-    // dump results
-    Util.dumpResults(depGraph);
+    return mDepAn.getDependencies(method, false, false, line);
+
   }
 
   private static MethodDependencyAnalysis createMDA(String[] args)
@@ -84,8 +86,7 @@ public class Main {
     Warnings.clear();
     
     // performing dependency analysis
-    MethodDependencyAnalysis mDepAn = new MethodDependencyAnalysis(p);
-    return mDepAn;
+    return new MethodDependencyAnalysis(p);
   }
   
   /************ programmatic interface **************/
@@ -107,7 +108,7 @@ public class Main {
    * @throws CancelException
    * @throws ParseException
    */
-  public static void analyze(
+  public static SimpleGraph analyze(
       String appJar,  
       String appPrefix,
       String strCompUnit,
@@ -154,7 +155,7 @@ public class Main {
     IMethod imethod = locateMethod(clazz, targetLine);
     
     // run the analysis
-    run(mda, imethod);    
+    return run(mda, imethod);    
     
   }
 

@@ -318,6 +318,7 @@ public class MethodDependencyAnalysis {
           try {
             int sourceLineNum = method1.getLineNumber(method1
                 .getBytecodeIndex(i));
+            //TODO: why pass both fr.getDeclaringClass() and fr? -Marcelo
             AccessInfo accessInfo = RWSet.makeAccessInfo(
                 method1.getDeclaringClass(), method1, sourceLineNum,
                 fr.getDeclaringClass(), fr);
@@ -481,7 +482,7 @@ public class MethodDependencyAnalysis {
 
   private void fillGraph(IMethod method, SimpleGraph result,
       boolean onlyPublicClasses, boolean onlyPublicMethods, AccessInfo access) {
-    FieldReference fr = access.fieldDefinition;
+    FieldReference fr = access.fieldReference;
     for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
       IMethod writer = entry.getKey();
       if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
@@ -492,7 +493,7 @@ public class MethodDependencyAnalysis {
       }
       Set<AccessInfo> writeSet = entry.getValue().writeSet;
       for (AccessInfo writeAccessInfo : writeSet) {
-        if (writeAccessInfo.fieldDefinition.equals(fr)) {
+        if (writeAccessInfo.fieldReference.equals(fr)) {
           result.getNode(writer).add(new SimpleGraph.Edge(method, fr, writeAccessInfo.accessLineNumber));
         }
       }

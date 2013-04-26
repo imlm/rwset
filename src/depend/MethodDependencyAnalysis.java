@@ -31,8 +31,10 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAFieldAccessInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.FieldReference;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.ReverseIterator;
@@ -389,21 +391,66 @@ public class MethodDependencyAnalysis {
     if (strLine == -1) {
       findDependency(method, result, reads);
     } else {
-      findDependency(method, result, reads, strLine);
+      Set<AccessInfo> indirectReads = indirectReadSets(method, strLine);
+      findDependency(method, result, reads, strLine, indirectReads);
     }
     return result;
   }
 
+  /**
+   *  Find out if there is an invocation within the line number. If there is, then the RWSets
+   *  of that invocation must be taken into consideration when computing the dependencies.
+   *  See issue #11.
+   */
+  private Set<AccessInfo> indirectReadSets(IMethod method, int line) {
+    IR ir = cache.getIRFactory().makeIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+    
+    Set<AccessInfo> indirectReads = new HashSet<AccessInfo>();
+    Set<IMethod> methodsWithRWSets = rwSets.keySet();
+    SSAInstruction[] instructions = ir.getInstructions();
+    for (int i = 0; i < instructions.length; i++) {
+      SSAInstruction instruction = instructions[i];
+      if (instruction == null) {
+        continue;
+      }
+      IBytecodeMethod bMethod = (IBytecodeMethod) ir.getMethod();
+      int sourceLineNum = -1;
+      try {
+        sourceLineNum = bMethod.getLineNumber(bMethod.getBytecodeIndex(i));
+      } catch (InvalidClassFileException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+        break;
+      }
+      if (sourceLineNum != line) {
+        continue;
+      }
+      if (instruction instanceof SSAInvokeInstruction) {
+        SSAInvokeInstruction invokeIntruction = (SSAInvokeInstruction) instruction;
+        MethodReference callSite = invokeIntruction.getCallSite().getDeclaredTarget();
+        for (IMethod possibleTarget : cha.getPossibleTargets(callSite)) {
+          // Some targets might not have had their RWSets computed
+          if (methodsWithRWSets.contains(possibleTarget)) {
+            indirectReads.addAll(rwSets.get(possibleTarget).readSet);
+          }
+        }
+      }
+    }
+    return indirectReads;
+  }
+
   private void findDependency(IMethod method, SimpleGraph result,
-      Set<AccessInfo> reads, int strLine) {
+      Set<AccessInfo> reads, int strLine, Set<AccessInfo> indirectReads) {
     boolean onlyPublicClasses = false;
     boolean onlyPublicMethods = false;
     for (AccessInfo access : reads) {
       int line = access.accessLineNumber;
       if (line != strLine) {
-	// System.out.println("linha:" + line);
         continue;
       }
+      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
+    }
+    for (AccessInfo access : indirectReads) {
       fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
     }
   }

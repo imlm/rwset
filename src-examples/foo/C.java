@@ -1,4 +1,4 @@
-package examples;
+package foo;
 
 public class C {
   

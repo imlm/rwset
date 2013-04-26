@@ -4,5 +4,7 @@ bin/
 examples.jar
 iagent.jar
 101.jar
+foo.jar
+coffee.jar
 results/results.dot
 results/results.pdf

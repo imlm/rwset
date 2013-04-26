@@ -1,8 +1,8 @@
-package examples;
+package foo;
 
 public class A {
   
-  int x;
+  public int x;
   int y;
   int z;
   

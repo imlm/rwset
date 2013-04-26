@@ -174,7 +174,7 @@ public class Main {
       }
     }
     if (result == null) {
-      throw new RuntimeException("could not find informed method");
+      throw new RuntimeException("  rmed method");
     }
     return result;
   }

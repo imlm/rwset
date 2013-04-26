@@ -1,10 +1,12 @@
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 import junit.framework.JUnit4TestAdapter;
 
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
 @RunWith(Suite.class)
-@Suite.SuiteClasses({
-  core.Sanity.class  // Add test classes here
+@Suite.SuiteClasses({ // Add test classes here
+  core.Sanity.class,  
+  coffeemaker.TestCoffeeMaker.class
 })
 
 public class AllTests  {

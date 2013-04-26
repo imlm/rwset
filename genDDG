@@ -22,13 +22,21 @@ case "$NAME" in
 	CLASS="Lcompanies101/org/softlang/swing/model/Model"
 	METHOD="getTotal()Ljava/lang/String;"
 	;;
+    "coffee" ) 
+	### 101 project
+	JARFILE="coffee.jar"
+	PREFIX="coffee"
+	LINE="99"
+	CLASS="Lcoffeemaker/CoffeeMaker"
+	METHOD="editRecipe(Lcoffeemaker/Recipe;Lcoffeemaker/Recipe;)Z"
+	;;
     * ) 
 	### default
 	JARFILE="examples.jar"
-	PREFIX="examples"
+	PREFIX="foo"
 	LINE="22"
-	CLASS="Lexamples/B"
-	METHOD="n_(Lexamples/A;Lexamples/C;)V"
+	CLASS="Lfoo/B"
+	METHOD="n_(Lfoo/A;Lfoo/C;)V"
 	;;
 esac
 

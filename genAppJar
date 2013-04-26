@@ -1,22 +1,21 @@
 #!/bin/bash
 
-## takes parameter if one is passed
-## otherwise, uses "examples" as 
-## default name
-if [ -z "$1" ];
-then
-    NAME="examples"
-else
-    NAME="$1"
-fi
-
-case "$NAME" in
+case "$1" in
     "101" ) 
 	PREFIX="companies101/org/softlang"
+	NAME="$1"
+	;;
+    "coffee" ) 
+	PREFIX="coffeemaker"
+	NAME="$1"
+	;;
+    "foo" ) 
+	PREFIX="foo"
+	NAME="foo"
 	;;
     * ) 
-	PREFIX="examples"
-	;;
+	echo "please inform the name of the subject "
+	exit;
 esac
 
 ######################  generate jar file for application

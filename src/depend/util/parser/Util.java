@@ -43,11 +43,12 @@ public class Util {
     int i = 1;
     int found = -1;
     String lastClassStr = "";
+    line = line.replace(" ", "");
     while ((s = br.readLine())!=null) {
       if (s.contains("class")) {
         lastClassStr = s;
       }
-      if (s.contains(line)) {
+      if (s.replace(" ", "").contains(line)) {
         if (found != -1) {
           throw new RuntimeException("umbiguous string");
         }

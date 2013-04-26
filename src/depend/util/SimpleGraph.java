@@ -26,6 +26,42 @@ public class SimpleGraph {
       this.fr = fr;
       this.line = line;
     }
+    
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((fr == null) ? 0 : fr.hashCode());
+      result = prime * result + ((imeth == null) ? 0 : imeth.hashCode());
+      result = prime * result + line;
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Edge other = (Edge) obj;
+      if (fr == null) {
+        if (other.fr != null)
+          return false;
+      } else if (!fr.equals(other.fr))
+        return false;
+      if (imeth == null) {
+        if (other.imeth != null)
+          return false;
+      } else if (!imeth.equals(other.imeth))
+        return false;
+      if (line != other.line)
+        return false;
+      return true;
+    }
+    
+    
   }
 
   private Map<IMethod, Set<Edge>> edges = new HashMap<IMethod, Set<Edge>>(); 

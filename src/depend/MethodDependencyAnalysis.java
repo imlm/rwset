@@ -73,9 +73,9 @@ public class MethodDependencyAnalysis {
    */
   AnalysisScope scope;
   ClassHierarchy cha;
-  private AnalysisOptions options;
+  AnalysisOptions options;
   // several caches
-  private static AnalysisCache cache;
+  static AnalysisCache cache;
   // application(instance)-specific caches
   private Map<IMethod, RWSet> rwSets = new HashMap<IMethod, RWSet>();
   Timer timer = new Timer();

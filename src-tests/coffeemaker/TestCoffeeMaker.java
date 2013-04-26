@@ -9,6 +9,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 
@@ -21,7 +22,7 @@ public class TestCoffeeMaker {
   String SEP = System.getProperty("file.separator");
 
   @Test
-  public void test0() throws IOException, WalaException, CancelException, ParseException {
+  public void test0() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/coffeemaker/CoffeeMaker.java";
     
@@ -37,7 +38,7 @@ public class TestCoffeeMaker {
     SimpleGraph sg = depend.Main.analyze(coffeejar, "coffee", strCompUnit, line);
         
     String expectedResultFile = USER_DIR + SEP + "src-tests/coffeemaker/TestCoffeeMaker.test0.data";
-
+    
     System.out.println(sg.toDotString());
     
     Assert.assertEquals(Helper.readFile(expectedResultFile), sg.toDotString());

@@ -14,8 +14,8 @@ import japa.parser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,33 +34,45 @@ public class Util {
   }
 
   public static String[] getLineAndWALAClassName(String line, String strCompUnit) throws ParseException, IOException {
-    File clazz = new File(strCompUnit);
-    CompilationUnit cUnit = parserClass(clazz);    
-    String str = cUnit.toString();
-    StringReader sr = new StringReader(str);
+    
+    /**
+     * which line number is this line?
+     * ...reading line-by-line from source file
+     */
+    File classFile = new File(strCompUnit);
+    FileReader sr = new FileReader(classFile);
     BufferedReader br = new BufferedReader(sr);
     String s;
     int i = 1;
-    int found = -1;
+    int lineNumber = -1;
     String lastClassStr = "";
     line = line.replace(" ", "");
-    while ((s = br.readLine())!=null) {
-      if (s.contains("class")) {
-        lastClassStr = s;
-      }
-      if (s.replace(" ", "").contains(line)) {
-        if (found != -1) {
-          throw new RuntimeException("umbiguous string");
+    try {
+      while ((s = br.readLine())!=null) {
+        if (s.contains("class")) {
+          lastClassStr = s;
         }
-        found = i;
+        if (s.replace(" ", "").contains(line)) {
+          if (lineNumber != -1) {
+            throw new RuntimeException("umbiguous string");
+          }
+          lineNumber = i;
+        }
+        i++;
       }
-      i++;
+      if (lineNumber == -1) {
+        throw new RuntimeException("could not find informed string in the compilation unit");
+      }
+    } finally {
+      br.close();
+      sr.close();
     }
-    if (found == -1) {
-      throw new RuntimeException("could not find informed string in the compilation unit");
-    }
-    MyVisitorAdapter vva = new MyVisitorAdapter(lastClassStr, line);
     
+    /**
+     * collecting class name 
+     */
+    MyVisitorAdapter vva = new MyVisitorAdapter(lastClassStr, line);
+    CompilationUnit cUnit = parserClass(classFile);
     cUnit.accept(vva, null);
     
     if (!vva.found) {
@@ -68,7 +80,7 @@ public class Util {
     }
     
     String[] result = new String[] {
-        found+"",
+        lineNumber+"",
         to_WALA_ClassName(vva.pd, vva.stack)
     };
     

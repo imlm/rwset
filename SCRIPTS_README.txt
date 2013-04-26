@@ -7,6 +7,7 @@ directory.  The list in alphabetical order:
  genAppJar
  genDDG
  run
+ runRegressionTests
 
 - build: compiles all source code and updates directory /bin
 
@@ -20,6 +21,7 @@ directory.  The list in alphabetical order:
 
 - run: instruments and runs a Java program
 
+- runRegressionTests: run the regression test suite for this project
 
 Example of use 1 (Scenario "dependency graph"):
 

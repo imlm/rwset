@@ -2,4 +2,19 @@
 
 source common
 
+./build
+
+function genIfNotThere() {
+    NAME=$1
+    if [ ! -f "$NAME.jar" ];
+    then
+	echo "missing file: $NAME.jar"
+	./genAppJar $NAME
+    fi
+}
+
+genIfNotThere foo
+genIfNotThere 101
+genIfNotThere coffee
+
 java -cp $CLASSPATH AllTests

@@ -9,6 +9,7 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 
@@ -20,20 +21,20 @@ public class Sanity {
   String SEP = System.getProperty("file.separator");
   
   @Test
-  public void test0() throws IOException, WalaException, CancelException, ParseException {
+  public void test0() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/foo/D.java";
     
     Assert.assertTrue((new File(strCompUnit)).exists());
     
-    String line = "if (true) {";    
+    String line = "System.out.println(\"hello\");";    
 
     // checking whether it will raise an exception
     depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
   }
   
   @Test
-  public void test1() throws IOException, WalaException, CancelException, ParseException {
+  public void test1() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/foo/B.java";
     

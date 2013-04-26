@@ -9,9 +9,7 @@ public class D {
     }
     
     public static void k(String a) {
-      if (true) {
-        
-      }
+      System.out.println("hello");
     }
     
     public static void l(String a) {

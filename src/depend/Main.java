@@ -3,11 +3,21 @@ package depend;
 import japa.parser.ParseException;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
+import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.callgraph.impl.Everywhere;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
@@ -32,7 +42,12 @@ public class Main {
    * @throws CancelException
    * @throws InterruptedException 
    */
-  public static void main(String[] args) throws IOException, IllegalArgumentException, WalaException, CancelException, InterruptedException {    
+  public static void main(String[] args) throws IOException, IllegalArgumentException, WalaException, CancelException, InterruptedException {
+    
+    if (args == null || args.length == 0) {
+      System.out.println("Please, inform inputs");
+      System.exit(0);
+    }
 
     MethodDependencyAnalysis mDepAn = createMDA(args);
     
@@ -107,12 +122,13 @@ public class Main {
    * @throws WalaException
    * @throws CancelException
    * @throws ParseException
+   * @throws InvalidClassFileException 
    */
   public static SimpleGraph analyze(
       String appJar,  
       String appPrefix,
       String strCompUnit,
-      String targetLineContents) throws IOException, WalaException, CancelException, ParseException {
+      String targetLineContents) throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
     
     // line number and class in WALA format 
     String[] lineAndClass = 
@@ -152,30 +168,36 @@ public class Main {
       throw new RuntimeException("Could not find class \"" + strClass + "\"");
     }
     // find informed method
-    IMethod imethod = locateMethod(clazz, targetLine);
+    IMethod imethod = findMethod(mda, clazz, targetLine);
     
     // run the analysis
     return run(mda, imethod);    
     
   }
 
-  private static IMethod locateMethod(IClass clazz, int targetLine) {
+  private static IMethod findMethod(MethodDependencyAnalysis mda, IClass clazz, int targetLine) throws InvalidClassFileException {
     IMethod result = null;
-    int loS = -1;
     for (IMethod iMethod : clazz.getDeclaredMethods()) {
-      int ln = iMethod.getLineNumber(0);
-      if (result == null) {
+      
+      //TODO: please check this.  it doe not seem to work for Sanity.test0
+      
+      @SuppressWarnings("static-access")
+      IR ir = mda.cache.getIRFactory().makeIR(iMethod, Everywhere.EVERYWHERE, mda.options.getSSAOptions());
+      SSAInstruction[] instructions = ir.getInstructions();
+      IBytecodeMethod ibm = (IBytecodeMethod) ir.getMethod();
+      int lo = ibm.getLineNumber(ibm.getBytecodeIndex(0));
+      int hi = ibm.getLineNumber(ibm.getBytecodeIndex(instructions.length-1));
+      
+      if (lo <= targetLine && hi >= targetLine) {
         result = iMethod;
-        loS = ln;
+        break;
       }
-      if (loS <= targetLine && loS < ln) {
-        loS = ln;
-        result = iMethod;
-      }
+      
     }
     if (result == null) {
-      throw new RuntimeException("  rmed method");
+      throw new RuntimeException("method not found!");
     }
+    
     return result;
   }
   

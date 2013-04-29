@@ -3,9 +3,8 @@ package depend;
 import java.util.Set;
 
 import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.types.FieldReference;
-import com.ibm.wala.types.TypeReference;
 
 /****
  * 
@@ -17,9 +16,12 @@ import com.ibm.wala.types.TypeReference;
  ***/
 public class RWSet {
   
-  public static AccessInfo makeAccessInfo(IClass accessClass, IMethod accessMethod, 
-      int accessLineNumber, TypeReference fieldDefinitionClass, FieldReference fieldDefinition) {
-    return new AccessInfo(accessClass, accessMethod, accessLineNumber, fieldDefinitionClass, fieldDefinition);
+  public static AccessInfo makeAccessInfo(
+      IClass accessClass, 
+      IMethod accessMethod, 
+      int accessLineNumber, 
+      IField ifield) {    
+    return new AccessInfo(accessClass, accessMethod, accessLineNumber, ifield);
   }
   
   protected Set<AccessInfo> readSet, writeSet;

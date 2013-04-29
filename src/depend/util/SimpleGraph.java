@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.types.Descriptor;
-import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 
@@ -17,13 +17,13 @@ public class SimpleGraph {
   public static class Edge {
     
     IMethod imeth;
-    FieldReference fr;
+    IField ifield;
     int line;
     
-    public Edge(IMethod node, FieldReference fr, int line) {
+    public Edge(IMethod node, IField fr, int line) {
       super();
       this.imeth = node;
-      this.fr = fr;
+      this.ifield = fr;
       this.line = line;
     }
     
@@ -31,7 +31,7 @@ public class SimpleGraph {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + ((fr == null) ? 0 : fr.hashCode());
+      result = prime * result + ((ifield == null) ? 0 : ifield.hashCode());
       result = prime * result + ((imeth == null) ? 0 : imeth.hashCode());
       result = prime * result + line;
       return result;
@@ -46,10 +46,10 @@ public class SimpleGraph {
       if (getClass() != obj.getClass())
         return false;
       Edge other = (Edge) obj;
-      if (fr == null) {
-        if (other.fr != null)
+      if (ifield == null) {
+        if (other.ifield != null)
           return false;
-      } else if (!fr.equals(other.fr))
+      } else if (!ifield.equals(other.ifield))
         return false;
       if (imeth == null) {
         if (other.imeth != null)
@@ -110,11 +110,11 @@ public class SimpleGraph {
           sb.append("label=\"");
           
 //          sb.append(edge.fr);
-          sb.append(toString(edge.fr.getFieldType().getName()));
+          sb.append(toString(edge.ifield.getFieldTypeReference().getName()));
           sb.append(" ");
-          sb.append(toString(edge.fr.getDeclaringClass().getName()));
+          sb.append(toString(edge.ifield.getDeclaringClass().getName()));
           sb.append(".");
-          sb.append(edge.fr.getName());
+          sb.append(edge.ifield.getName());
           sb.append(" : ");
           sb.append(edge.line);
           

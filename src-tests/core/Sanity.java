@@ -49,9 +49,10 @@ public class Sanity {
 
     String expected = Helper.readFile(expectedResultFile);
     
+    System.out.println(sg.toDotString());
+    
     Assert.assertEquals(expected, sg.toDotString());
   }
-
   
 
 }

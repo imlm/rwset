@@ -13,6 +13,7 @@ import java.util.Set;
 
 import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.examples.drivers.PDFTypeHierarchy;
@@ -294,9 +295,12 @@ public class MethodDependencyAnalysis {
         IBytecodeMethod method = (IBytecodeMethod) ir.getMethod();
         try {
           int sourceLineNum = method.getLineNumber(method.getBytecodeIndex(i));
-          AccessInfo accessInfo = RWSet.makeAccessInfo(
-              method.getDeclaringClass(), method, sourceLineNum,
-              fr.getDeclaringClass(), fr);
+          
+          // access field
+          IClass iclass = cha.lookupClass(fr.getDeclaringClass());
+          IField ifield = iclass.getField(fr.getName());
+          
+          AccessInfo accessInfo = RWSet.makeAccessInfo(method.getDeclaringClass(), method, sourceLineNum, ifield);
           set.add(accessInfo);
         } catch (InvalidClassFileException e) {
           e.printStackTrace();
@@ -318,10 +322,12 @@ public class MethodDependencyAnalysis {
           try {
             int sourceLineNum = method1.getLineNumber(method1
                 .getBytecodeIndex(i));
-            //TODO: why pass both fr.getDeclaringClass() and fr? -Marcelo
-            AccessInfo accessInfo = RWSet.makeAccessInfo(
-                method1.getDeclaringClass(), method1, sourceLineNum,
-                fr.getDeclaringClass(), fr);
+            
+            // access field
+            IClass iclass = cha.lookupClass(fr.getDeclaringClass());
+            IField ifield = iclass.getField(fr.getName());
+            
+            AccessInfo accessInfo = RWSet.makeAccessInfo(method1.getDeclaringClass(), method1, sourceLineNum, ifield);
             set.add(accessInfo);
           } catch (InvalidClassFileException e) {
             e.printStackTrace();
@@ -482,7 +488,7 @@ public class MethodDependencyAnalysis {
 
   private void fillGraph(IMethod method, SimpleGraph result,
       boolean onlyPublicClasses, boolean onlyPublicMethods, AccessInfo access) {
-    FieldReference fr = access.fieldReference;
+    IField fr = access.iField;
     for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
       IMethod writer = entry.getKey();
       if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
@@ -493,7 +499,7 @@ public class MethodDependencyAnalysis {
       }
       Set<AccessInfo> writeSet = entry.getValue().writeSet;
       for (AccessInfo writeAccessInfo : writeSet) {
-        if (writeAccessInfo.fieldReference.equals(fr)) {
+        if (writeAccessInfo.iField.equals(fr)) {
           result.getNode(writer).add(new SimpleGraph.Edge(method, fr, writeAccessInfo.accessLineNumber));
         }
       }

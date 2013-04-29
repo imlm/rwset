@@ -14,7 +14,7 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 
 import core.Helper;
-import depend.util.SimpleGraph;
+import depend.util.graph.SimpleGraph;
 
 public class TestCoffeeMaker {
   
@@ -38,8 +38,6 @@ public class TestCoffeeMaker {
     SimpleGraph sg = depend.Main.analyze(coffeejar, "coffee", strCompUnit, line);
         
     String expectedResultFile = USER_DIR + SEP + "src-tests/coffeemaker/TestCoffeeMaker.test0.data";
-    
-    System.out.println(sg.toDotString());
     
     Assert.assertEquals(Helper.readFile(expectedResultFile), sg.toDotString());
   }

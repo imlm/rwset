@@ -11,13 +11,11 @@ import com.ibm.wala.classLoader.IMethod;
  */
 class AccessInfo {
 
-  // identifies where in the code the access has occurred
   public final IClass accessClass;
   public final IMethod accessMethod;
   public final int accessLineNumber;
   
-  // identifies what information has been accessed
-//  public final TypeReference fieldReferenceDeclaringClass;
+  // accessed field
   public final IField iField;
 
   AccessInfo(IClass accessClass, 

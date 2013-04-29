@@ -18,6 +18,8 @@ import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.viz.DotUtil;
 
+import depend.util.graph.SimpleGraph;
+
 public class Util {
   
   /************** CONSTANTS **************/

@@ -47,9 +47,10 @@ import com.ibm.wala.util.warnings.Warnings;
 import com.ibm.wala.viz.DotUtil;
 
 import depend.util.CallGraphGenerator;
-import depend.util.SimpleGraph;
 import depend.util.Timer;
 import depend.util.Util;
+import depend.util.graph.Edge;
+import depend.util.graph.SimpleGraph;
 
 /**
  * Method dependency analysis based on:
@@ -461,8 +462,12 @@ public class MethodDependencyAnalysis {
     return indirectReads;
   }
 
-  private void findDependency(IMethod method, SimpleGraph result,
-      Set<AccessInfo> reads, int strLine, Set<AccessInfo> indirectReads) {
+  private void findDependency(
+      IMethod method, 
+      SimpleGraph result,
+      Set<AccessInfo> reads, 
+      int strLine, 
+      Set<AccessInfo> indirectReads) {
     boolean onlyPublicClasses = false;
     boolean onlyPublicMethods = false;
     for (AccessInfo access : reads) {
@@ -486,9 +491,12 @@ public class MethodDependencyAnalysis {
     }
   }
 
-  private void fillGraph(IMethod method, SimpleGraph result,
-      boolean onlyPublicClasses, boolean onlyPublicMethods, AccessInfo access) {
-    IField fr = access.iField;
+  private void fillGraph(
+      IMethod method, 
+      SimpleGraph result,
+      boolean onlyPublicClasses, 
+      boolean onlyPublicMethods, 
+      AccessInfo readAccessInfo) {
     for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
       IMethod writer = entry.getKey();
       if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
@@ -499,8 +507,13 @@ public class MethodDependencyAnalysis {
       }
       Set<AccessInfo> writeSet = entry.getValue().writeSet;
       for (AccessInfo writeAccessInfo : writeSet) {
-        if (writeAccessInfo.iField.equals(fr)) {
-          result.getNode(writer).add(new SimpleGraph.Edge(method, fr, writeAccessInfo.accessLineNumber));
+        if (writeAccessInfo.iField.equals(readAccessInfo.iField)) {
+          //result.getNode(writer).add(new Edge(method, fr, writeAccessInfo.accessLineNumber));
+          Edge edge = 
+              new Edge(writeAccessInfo.accessMethod, writeAccessInfo.accessLineNumber,
+                    readAccessInfo.accessMethod, readAccessInfo.accessLineNumber, 
+                    writeAccessInfo.iField);
+          result.add(edge);
         }
       }
     }

@@ -13,7 +13,7 @@ import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 
-import depend.util.SimpleGraph;
+import depend.util.graph.SimpleGraph;
 
 public class Sanity {
   
@@ -48,9 +48,7 @@ public class Sanity {
     String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.test1.data";
 
     String expected = Helper.readFile(expectedResultFile);
-    
-    System.out.println(sg.toDotString());
-    
+        
     Assert.assertEquals(expected, sg.toDotString());
   }
   

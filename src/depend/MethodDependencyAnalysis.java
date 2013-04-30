@@ -74,7 +74,7 @@ public class MethodDependencyAnalysis {
    * instance fields
    */
   AnalysisScope scope;
-  ClassHierarchy cha;
+  private ClassHierarchy cha;
   AnalysisOptions options;
   // several caches
   static AnalysisCache cache;
@@ -144,7 +144,7 @@ public class MethodDependencyAnalysis {
     if (PROPAGATE_CALLS) {
 
       // building the call graph
-      CallGraphGenerator cgg = new CallGraphGenerator(scope, cha);
+      CallGraphGenerator cgg = new CallGraphGenerator(scope, getCHA());
       Graph<CGNode> graph = cgg.getCallGraph();
       if (debugTime) {
         timer.stop();
@@ -229,7 +229,7 @@ public class MethodDependencyAnalysis {
   private void directRWSets() {
     // finds rw-sets for all application methods
     List<IClass> toVisit = new ArrayList<IClass>();
-    IClass root = cha.getRootClass();
+    IClass root = getCHA().getRootClass();
     toVisit.add(root);
     Set<IMethod> visited = new HashSet<IMethod>();
     while (!toVisit.isEmpty()) {
@@ -237,7 +237,7 @@ public class MethodDependencyAnalysis {
       // want to visit all classes regardless it is application
       // as not application classes can be parent of application
       // classes.
-      toVisit.addAll(cha.getImmediateSubclasses(cur));
+      toVisit.addAll(getCHA().getImmediateSubclasses(cur));
       if (Util.isAppClass(cur)) {
         for (IMethod imethod : cur.getAllMethods()) {
           if (imethod.isNative() || imethod.isAbstract()
@@ -298,7 +298,7 @@ public class MethodDependencyAnalysis {
           int sourceLineNum = method.getLineNumber(method.getBytecodeIndex(i));
           
           // access field
-          IClass iclass = cha.lookupClass(fr.getDeclaringClass());
+          IClass iclass = getCHA().lookupClass(fr.getDeclaringClass());
           IField ifield = iclass.getField(fr.getName());
           
           AccessInfo accessInfo = RWSet.makeAccessInfo(method.getDeclaringClass(), method, sourceLineNum, ifield);
@@ -325,7 +325,7 @@ public class MethodDependencyAnalysis {
                 .getBytecodeIndex(i));
             
             // access field
-            IClass iclass = cha.lookupClass(fr.getDeclaringClass());
+            IClass iclass = getCHA().lookupClass(fr.getDeclaringClass());
             IField ifield = iclass.getField(fr.getName());
             
             AccessInfo accessInfo = RWSet.makeAccessInfo(method1.getDeclaringClass(), method1, sourceLineNum, ifield);
@@ -451,7 +451,7 @@ public class MethodDependencyAnalysis {
       if (instruction instanceof SSAInvokeInstruction) {
         SSAInvokeInstruction invokeIntruction = (SSAInvokeInstruction) instruction;
         MethodReference callSite = invokeIntruction.getCallSite().getDeclaredTarget();
-        for (IMethod possibleTarget : cha.getPossibleTargets(callSite)) {
+        for (IMethod possibleTarget : getCHA().getPossibleTargets(callSite)) {
           // Some targets might not have had their RWSets computed
           if (methodsWithRWSets.contains(possibleTarget)) {
             indirectReads.addAll(rwSets.get(possibleTarget).readSet);
@@ -518,4 +518,9 @@ public class MethodDependencyAnalysis {
       }
     }
   }
+
+  public ClassHierarchy getCHA() {
+    return cha;
+  }
+
 }

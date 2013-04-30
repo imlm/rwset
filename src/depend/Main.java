@@ -48,7 +48,7 @@ public class Main {
     
     // find informed class
     String strClass = Util.getStringProperty("targetClass");
-    IClass clazz = mDepAn.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
+    IClass clazz = mDepAn.getCHA().lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, strClass));
     if (clazz == null) {
       throw new RuntimeException("Could not find class \"" + strClass + "\"");
     }
@@ -158,7 +158,7 @@ public class Main {
     
     // find informed class
     String strClass = Util.getStringProperty("targetClass");
-    IClass clazz = mda.cha.lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, targetClass));
+    IClass clazz = mda.getCHA().lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, targetClass));
     if (clazz == null) {
       throw new RuntimeException("Could not find class \"" + strClass + "\"");
     }
@@ -169,8 +169,8 @@ public class Main {
     return run(mda, imethod);    
     
   }
-
-  private static IMethod findMethod(MethodDependencyAnalysis mda, IClass clazz, int targetLine) throws InvalidClassFileException {
+  
+  public static IMethod findMethod(MethodDependencyAnalysis mda, IClass clazz, int targetLine) throws InvalidClassFileException {
     IMethod result = null;
     for (IMethod iMethod : clazz.getDeclaredMethods()) {
       
@@ -195,7 +195,7 @@ public class Main {
     
     return result;
   }
-  
+
 
 
 }

@@ -32,13 +32,14 @@ public class TestCoffeeMaker {
     
     String coffeejar = USER_DIR + SEP + "coffee.jar";
     
+    // check
     Assert.assertTrue((new File(strCompUnit)).exists());
 
-    // checking whether it will raise an exception
     SimpleGraph sg = depend.Main.analyze(coffeejar, "coffee", strCompUnit, line);
         
     String expectedResultFile = USER_DIR + SEP + "src-tests/coffeemaker/TestCoffeeMaker.test0.data";
     
+    // check
     Assert.assertEquals(Helper.readFile(expectedResultFile), sg.toDotString());
   }
 

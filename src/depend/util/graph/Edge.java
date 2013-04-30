@@ -37,7 +37,7 @@ public class Edge {
     int result = 1;
     result = prime * result + ((ifield == null) ? 0 : ifield.hashCode());
     result = prime * result + writerLine;
-    result = prime * result + readerLine;
+//    result = prime * result + readerLine;
     result = prime * result + ((writer == null) ? 0 : writer.hashCode());
     result = prime * result + ((reader == null) ? 0 : reader.hashCode());
     return result;
@@ -60,8 +60,8 @@ public class Edge {
       return false;
     if (writerLine != other.writerLine)
       return false;
-    if (readerLine != other.readerLine)
-      return false;
+//    if (readerLine != other.readerLine)
+//      return false;
     if (writer == null) {
       if (other.writer != null)
         return false;

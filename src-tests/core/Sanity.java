@@ -38,17 +38,18 @@ public class Sanity {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/foo/B.java";
     
+    // check
     Assert.assertTrue((new File(strCompUnit)).exists());
     
     String line = "a.y + a.z > c.y + w";    
 
-    // checking whether it will raise an exception
     SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
         
     String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.test1.data";
 
     String expected = Helper.readFile(expectedResultFile);
-        
+
+    // check
     Assert.assertEquals(expected, sg.toDotString());
   }
   

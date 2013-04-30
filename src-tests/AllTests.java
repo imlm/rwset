@@ -5,8 +5,8 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ // Add test classes here
-  core.Sanity.class,  
-  coffeemaker.TestCoffeeMaker.class
+  coffeemaker.TestCoffeeMaker.class,
+  core.Sanity.class
 })
 
 public class AllTests  {

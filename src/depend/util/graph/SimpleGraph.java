@@ -1,5 +1,7 @@
 package depend.util.graph;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -10,19 +12,8 @@ import com.ibm.wala.types.TypeReference;
 
 public class SimpleGraph {
 
-//  private Map<IMethod, Set<Edge>> edges = new HashMap<IMethod, Set<Edge>>();
-  
   private Set<Edge> edges = new HashSet<Edge>();
 
-//  public Set<Edge> getNode(IMethod meth) {
-//    Set<Edge> result = edges.get(meth);
-//    if (result == null) {
-//      result = new HashSet<Edge>();
-//      edges.put(meth, result);
-//    }
-//    return result;
-//  }
-  
   public String toDotString() {
     StringBuffer sb = new StringBuffer();
     sb.append("digraph \"DirectedGraph\" {\n");
@@ -38,9 +29,12 @@ public class SimpleGraph {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-//    for (Entry<IMethod, Set<Edge>> entry: edges.entrySet()) {
+    
+    String[] strEdgesAr = new String[edges.size()];
+
+    int i = 0;
     for (Edge edge : edges) {
+      StringBuffer sb = new StringBuffer();
       sb.append("\"");
       sb.append(toString(edge.writer));
       sb.append("\"");
@@ -54,7 +48,6 @@ public class SimpleGraph {
       sb.append(" [");
       sb.append("label=\"");
 
-      //          sb.append(edge.fr);
       sb.append(toString(edge.ifield.getFieldTypeReference().getName()));
       sb.append(" ");
       sb.append(toString(edge.ifield.getDeclaringClass().getName()));
@@ -65,9 +58,26 @@ public class SimpleGraph {
 
       sb.append("\"");
       sb.append(" ]");
-      sb.append("\n");
+      
+      // update array
+      strEdgesAr[i++] = sb.toString();
     }
-    return sb.toString();
+    
+    // sorting array
+    Arrays.sort(strEdgesAr, new Comparator<String>() {
+      @Override
+      public int compare(String o1, String o2) {
+        return o1.compareTo(o2);
+      }
+    });
+    
+    StringBuffer result = new StringBuffer();    
+    for (String s : strEdgesAr) {
+      result.append(s);
+      result.append("\n");
+    }
+    
+    return result.toString();
   }
   
   private Object toString(IMethod meth) {

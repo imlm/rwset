@@ -95,55 +95,7 @@ public class Util {
     }
   }
  
-//  private static String to_WALA_type(Type type) throws ClassNotFoundException {
-//    StringBuffer sb = new StringBuffer();
-//    if (type instanceof VoidType) {
-//      sb.append("V");
-//    } else if (type instanceof PrimitiveType) {
-//      switch (((PrimitiveType)type).getType()) {
-//      case Boolean:
-//        sb.append("Z");
-//        break;
-//      case Char:
-//        sb.append("C");
-//        break;
-//      case Byte:
-//        sb.append("B");
-//        break;
-//      case Short:
-//        sb.append("S");
-//        break;
-//      case Int:
-//        sb.append("I");
-//        break;
-//      case Long:
-//        sb.append("J");
-//        break;
-//      case Float:
-//        sb.append("F");
-//        break;
-//      case Double:
-//        sb.append("D");
-//        break;
-//      default:
-//        break;
-//      }
-//    } else if (type instanceof ReferenceType) {
-//      sb.append("L");
-//      sb.append(mangleTypeName(type));
-//      sb.append(";");      
-//    } else if (type instanceof ClassOrInterfaceType) {
-//      sb.append("L");
-//      sb.append(mangleTypeName(type));
-//      sb.append(";");      
-//    } else {
-//      throw new UnsupportedOperationException();
-//    }
-//    return sb.toString();
-//  }
-  
   static Set<String> javalang = new HashSet<String>();
-
 
   private static String to_WALA_ClassName(PackageDeclaration pd,
       Stack<ClassOrInterfaceDeclaration> stack) {

@@ -50,7 +50,8 @@ public class CallGraphGenerator {
     
   }
 
-  static HashSet<Entrypoint> result = HashSetFactory.make();
+  // TODO: Why is this an attribute? Minor performance optimization?
+  private HashSet<Entrypoint> result = HashSetFactory.make();
 
   private Iterable<Entrypoint> entryPoints(ClassLoaderReference clr, IClassHierarchy cha) {
     if (cha == null) {

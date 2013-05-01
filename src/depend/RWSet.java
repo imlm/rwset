@@ -55,7 +55,9 @@ public class RWSet {
     for (AccessInfo readAccessInfo: readSet) {
       sb.append(readAccessInfo.toString() + "\n");
     }
-    System.out.println("WRITES TO:");
+    sb.append("\n");
+    sb.append("WRITES TO:");
+    sb.append("\n");
     for (AccessInfo writeAccessInfo: writeSet) {
       sb.append(writeAccessInfo.toString() + "\n");
     }

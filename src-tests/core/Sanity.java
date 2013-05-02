@@ -30,7 +30,7 @@ public class Sanity {
   String SEP = System.getProperty("file.separator");
   
   @Test
-  public void test0() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+  public void testBasicDoesNotCrash() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/foo/D.java";
     
@@ -43,28 +43,7 @@ public class Sanity {
   }
   
   @Test
-  public void test1() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
-
-    String strCompUnit = USER_DIR + SEP + "src-examples/foo/B.java";
-    
-    // check
-    Assert.assertTrue((new File(strCompUnit)).exists());
-    
-    String line = "a.y + a.z > c.y + w";    
-
-    SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
-        
-    String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.test1.data";
-
-    String expected = Helper.readFile(expectedResultFile);
-
-    // check
-    Assert.assertEquals(expected, sg.toDotString());
-  }
-  
-  
-  @Test
-  public void test2() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+  public void testIR_isNotEmpty() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
 
     String strCompUnit = USER_DIR + SEP + "src-examples/foo/D.java";
     
@@ -124,5 +103,88 @@ public class Sanity {
 
   }
   
+  @Test
+  public void testPrimitiveTypeDependency() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+
+    String strCompUnit = USER_DIR + SEP + "src-examples/foo/B.java";
+    
+    // check
+    Assert.assertTrue((new File(strCompUnit)).exists());
+    
+    String line = "a.y + a.z > c.y + w";    
+
+    SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
+        
+    String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.testPrimitiveTypeDependency.data";
+
+    String expected = Helper.readFile(expectedResultFile);
+
+    // check
+    Assert.assertEquals(expected, sg.toDotString());
+  }
+  
+  @Test
+  public void testArrayDependency() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+    
+    String strCompUnit = USER_DIR + SEP + "src-examples/foo/FooArray.java";
+    
+    // check
+    Assert.assertTrue((new File(strCompUnit)).exists());
+    
+    String line = "t[1] = t[1] + \"!\";";    
+
+    SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
+        
+    String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.testArrayDependency.data";
+
+    String expected = Helper.readFile(expectedResultFile);
+    
+    // check
+    Assert.assertEquals(expected, sg.toDotString());
+    
+  }
+  
+  @Test
+  public void testReferenceDependency() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+    
+    String strCompUnit = USER_DIR + SEP + "src-examples/foo/FooReference.java";
+    
+    // check
+    Assert.assertTrue((new File(strCompUnit)).exists());
+    
+    String line = "System.out.println(t);";    
+
+    SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
+        
+    String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.testReferenceDependency.data";
+
+    String expected = Helper.readFile(expectedResultFile);
+    
+    // check
+    Assert.assertEquals(expected, sg.toDotString());
+    
+  }
+  
+  
+  @Test
+  public void testCollectionsDependency() throws IOException, WalaException, CancelException, ParseException, InvalidClassFileException {
+    
+    String strCompUnit = USER_DIR + SEP + "src-examples/foo/FooCollections.java";
+    
+    // check
+    Assert.assertTrue((new File(strCompUnit)).exists());
+    
+    String line = "(t.size())";    
+
+    SimpleGraph sg = depend.Main.analyze("foo.jar", "foo", strCompUnit, line);
+        
+    String expectedResultFile = USER_DIR + SEP + "src-tests/core/Sanity.testCollectionsDependency.data";
+
+    String expected = Helper.readFile(expectedResultFile);
+    
+    // check
+    Assert.assertEquals(expected, sg.toDotString());
+    
+  }
 
 }

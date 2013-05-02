@@ -328,7 +328,7 @@ public class MethodDependencyAnalysis {
             IClass iclass = getCHA().lookupClass(fr.getDeclaringClass());
             IField ifield = iclass.getField(fr.getName());
             
-            AccessInfo accessInfo = RWSet.makeAccessInfo(method1.getDeclaringClass(), method1, sourceLineNum, ifield);
+            AccessInfo accessInfo = RWSet.makeAccessInfo(method1, sourceLineNum, ifield);
             set.add(accessInfo);
           } catch (InvalidClassFileException e) {
             e.printStackTrace();

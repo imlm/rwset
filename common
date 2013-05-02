@@ -10,4 +10,4 @@ do
     CLASSPATH=$CLASSPATH:$x
 done
 
-DOTPATH="/usr/bin/dot"
+DOTPATH="/usr/local/bin/dot"

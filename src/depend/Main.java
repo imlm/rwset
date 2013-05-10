@@ -165,10 +165,9 @@ public class Main {
     MethodDependencyAnalysis mda = createMDA(args);
     
     // find informed class
-    String strClass = Util.getStringProperty("targetClass");
     IClass clazz = mda.getCHA().lookupClass(TypeReference.findOrCreate(ClassLoaderReference.Application, targetClass));
     if (clazz == null) {
-      throw new RuntimeException("Could not find class \"" + strClass + "\"");
+      throw new RuntimeException("Could not find class \"" + targetClass + "\"");
     }
     // find informed method
     IMethod imethod = findMethod(mda, clazz, targetLine);

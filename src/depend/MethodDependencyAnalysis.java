@@ -6,11 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Set;
 
+import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -21,11 +24,15 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
+import com.ibm.wala.ipa.cfg.AbstractInterproceduralCFG;
+import com.ibm.wala.ipa.cfg.InterproceduralCFG;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayReferenceInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
@@ -35,7 +42,6 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.FieldReference;
-import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.ReverseIterator;
@@ -414,52 +420,17 @@ public class MethodDependencyAnalysis {
     if (strLine == -1) {
       findDependency(method, result, reads);
     } else {
-      Set<AccessInfo> indirectReads = indirectReadSets(method, strLine);
+      CallGraph cg = null;
+      try {
+        // TODO: We may want to reuse the callgraph created during the RWSet propagation phase.
+        cg = new CallGraphGenerator(scope, getCHA()).getFullCallGraph();
+      } catch (Exception e) {
+        throw new RuntimeException(e); // Can't we change this method's exception interface?
+      }
+      Set<AccessInfo> indirectReads = findFlowingReadSet(method, strLine, cg);
       findDependency(method, result, reads, strLine, indirectReads);
     }
     return result;
-  }
-
-  /**
-   *  Find out if there is an invocation within the line number. If there is, then the RWSets
-   *  of that invocation must be taken into consideration when computing the dependencies.
-   *  See issue #11.
-   */
-  private Set<AccessInfo> indirectReadSets(IMethod method, int line) {
-    IR ir = cache.getIRFactory().makeIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
-    
-    Set<AccessInfo> indirectReads = new HashSet<AccessInfo>();
-    Set<IMethod> methodsWithRWSets = rwSets.keySet();
-    SSAInstruction[] instructions = ir.getInstructions();
-    for (int i = 0; i < instructions.length; i++) {
-      SSAInstruction instruction = instructions[i];
-      if (instruction == null) {
-        continue;
-      }
-      IBytecodeMethod bMethod = (IBytecodeMethod) ir.getMethod();
-      int sourceLineNum = -1;
-      try {
-        sourceLineNum = bMethod.getLineNumber(bMethod.getBytecodeIndex(i));
-      } catch (InvalidClassFileException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-        break;
-      }
-      if (sourceLineNum != line) {
-        continue;
-      }
-      if (instruction instanceof SSAInvokeInstruction) {
-        SSAInvokeInstruction invokeIntruction = (SSAInvokeInstruction) instruction;
-        MethodReference callSite = invokeIntruction.getCallSite().getDeclaredTarget();
-        for (IMethod possibleTarget : getCHA().getPossibleTargets(callSite)) {
-          // Some targets might not have had their RWSets computed
-          if (methodsWithRWSets.contains(possibleTarget)) {
-            indirectReads.addAll(rwSets.get(possibleTarget).readSet);
-          }
-        }
-      }
-    }
-    return indirectReads;
   }
 
   private void findDependency(
@@ -523,4 +494,140 @@ public class MethodDependencyAnalysis {
     return cha;
   }
 
+  /**
+   * Finds the read set that flows to line <code>sourceLine</code> in method <code>method</code>.
+   * @param method target method that contains the source line to find the flowing read set
+   * @param sourceLine
+   * @param cg the callgraph used to build the control flow graph
+   * @return
+   */
+  private Set<AccessInfo> findFlowingReadSet(IMethod method, int sourceLine, CallGraph cg){
+    Set<AccessInfo> reads = new HashSet<AccessInfo>();
+    AbstractInterproceduralCFG<ISSABasicBlock> interproceduralCFG = new InterproceduralCFG(cg);
+
+    // I am not 100% sure but I believe a single source line may encompass more than one basic block!
+    List<ISSABasicBlock> initialBlocks = this.getBasicBlocksForSourceLine(method, sourceLine);
+   
+    /* Accounting for all possible CFGs of a given method.
+     * The loop below is just a generalization in case we want to use a more precise callgraph
+     * in the future.
+     * Right now it should iterate only once as we are using a simple 0-CFA callgraph building algorithm
+     * and as such there should be only one CGNode for each method.
+     */
+    Set<CGNode> cgNodes = cg.getNodes(method.getReference());
+    for (CGNode cgNode : cgNodes) { 
+      ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = interproceduralCFG.getCFG(cgNode);
+      Queue<ISSABasicBlock> blocksWorkList = new LinkedList<ISSABasicBlock>(initialBlocks);
+      List<ISSABasicBlock> visitedBlocks = new ArrayList<ISSABasicBlock>();
+      while(!blocksWorkList.isEmpty()){
+        ISSABasicBlock block = blocksWorkList.poll();
+        visitBlock(block, cgNode, cg, reads);
+        visitedBlocks.add(block);
+        addPredecessorsToWorkList(cfg, blocksWorkList, visitedBlocks, block);
+      }
+    }
+    
+    return reads;
+  }
+
+  private void visitBlock(ISSABasicBlock block, CGNode methodNode, CallGraph cg, Set<AccessInfo> reads) {
+    RWSet methodRWSet = rwSets.get(methodNode.getMethod());
+    Set<AccessInfo> readSet = methodRWSet.readSet;
+
+    Set<IMethod> methods = this.rwSets.keySet();
+    Iterator<SSAInstruction> blockIterator = block.iterator();
+    while (blockIterator.hasNext()) {
+      SSAInstruction ssaInstruction = (SSAInstruction) blockIterator.next();
+      if(ssaInstruction == null){
+        continue;
+      }
+      if(ssaInstruction instanceof SSAInvokeInstruction){
+        SSAInvokeInstruction invokeInstruction = (SSAInvokeInstruction) ssaInstruction;
+        for (CGNode possibleTarget : cg.getPossibleTargets(methodNode, invokeInstruction.getCallSite())) {
+          if (methods.contains(possibleTarget.getMethod())) {
+            reads.addAll(rwSets.get(possibleTarget.getMethod()).readSet);
+          }
+        }
+      } else if(ssaInstruction instanceof SSAGetInstruction){
+        SSAGetInstruction getInstruction = (SSAGetInstruction) ssaInstruction;
+        FieldReference fieldReference = getInstruction.getDeclaredField();
+        IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
+        IField iField = iClass.getField(fieldReference.getName());
+        for (AccessInfo readAccessInfo : readSet) {
+          if(readAccessInfo.iField.equals(iField)){
+            reads.add(readAccessInfo);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Add all predecessor basic blocks of <code>block</code> to <code>blocksWorkList</code> that
+   * haven't been visited before.
+   * @param cfg the control flow graph used to retrieve the predecessor blocks of <code>block</code>
+   * @param blocksWorkList queue of basic blocks to which the predecessors may be added
+   * @param visitedBlocks list of basic blocks that have already been visited and that should not
+   * be added to <code>blocksWorkList</code> again
+   * @param block
+   */
+  private void addPredecessorsToWorkList(
+      ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg,
+      Queue<ISSABasicBlock> blocksWorkList, List<ISSABasicBlock> visitedBlocks,
+      ISSABasicBlock block) {
+    Iterator<ISSABasicBlock> predNodes = cfg.getPredNodes(block);
+    while (predNodes.hasNext()) {
+      ISSABasicBlock issaBasicBlock = predNodes.next();
+      if(!visitedBlocks.contains(issaBasicBlock)){
+        blocksWorkList.add(issaBasicBlock);
+      }
+    }
+  }
+
+  /**
+   * Returns the SSA basic blocks that make up source line <code>sourceLine</code>.
+   * @param method the method that contains the source line indicated by <code>sourceLine</code>,
+   * it <b>must</b> also be an instance of {@link IBytecodeMethod}
+   * @param sourceLine the source line to get the basic blocks for
+   * @return a list containing the basic blocks that may compose <code>sourceLine</code>
+   */
+  private List<ISSABasicBlock> getBasicBlocksForSourceLine(IMethod method, int sourceLine){
+    List<ISSABasicBlock> ssaBasicBlocks = new ArrayList<ISSABasicBlock>();
+    IR ir = cache.getIRFactory().makeIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+    SSAInstruction[] instructions = ir.getInstructions();
+    for (int i = 0; i < instructions.length; i++) {
+      SSAInstruction ssaInstruction = instructions[i];
+      if(ssaInstruction == null){
+        continue;
+      }
+      if(getSourceLine((IBytecodeMethod) method, i) == sourceLine){
+        ISSABasicBlock basicBlock = ir.getBasicBlockForInstruction(ssaInstruction);
+        if(!ssaBasicBlocks.contains(basicBlock)){
+          ssaBasicBlocks.add(basicBlock);
+        }
+      }
+    }
+    return ssaBasicBlocks;
+  }
+
+  /**
+   * Returns the source line for the instruction at index <code>instructionIndex</code> in method
+   * <code>bMethod</code>.
+   * If unable to determine the source line number this method returns -1. 
+   * @param bMethod method to determine the line number
+   * @param instructionIndex
+   * @return the source line number for instruction at index <code>instructionIndex</code> in method
+   * <code>bMethod</code> or -1 if unable to determine the source line number.
+   */
+  private int getSourceLine(IBytecodeMethod bMethod, int instructionIndex){
+    int sourceLineNum = -1;
+    try {
+      sourceLineNum = bMethod.getLineNumber(bMethod.getBytecodeIndex(instructionIndex));
+    } catch (InvalidClassFileException e) {
+      e.printStackTrace();
+    }
+    return sourceLineNum;
+  }
+
+  
 }

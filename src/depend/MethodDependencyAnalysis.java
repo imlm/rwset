@@ -427,30 +427,10 @@ public class MethodDependencyAnalysis {
       } catch (Exception e) {
         throw new RuntimeException(e); // Can't we change this method's exception interface?
       }
-      Set<AccessInfo> indirectReads = findFlowingReadSet(method, strLine, cg);
-      findDependency(method, result, reads, strLine, indirectReads);
+      Set<AccessInfo> flowingReads = findFlowingReadSet(method, strLine, cg);
+      findDependency(method, result, flowingReads);
     }
     return result;
-  }
-
-  private void findDependency(
-      IMethod method, 
-      SimpleGraph result,
-      Set<AccessInfo> reads, 
-      int strLine, 
-      Set<AccessInfo> indirectReads) {
-    boolean onlyPublicClasses = false;
-    boolean onlyPublicMethods = false;
-    for (AccessInfo access : reads) {
-      int line = access.accessLineNumber;
-      if (line != strLine) {
-        continue;
-      }
-      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
-    }
-    for (AccessInfo access : indirectReads) {
-      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
-    }
   }
 
   private void findDependency(IMethod method, SimpleGraph result,
@@ -507,7 +487,7 @@ public class MethodDependencyAnalysis {
 
     // I am not 100% sure but I believe a single source line may encompass more than one basic block!
     List<ISSABasicBlock> initialBlocks = this.getBasicBlocksForSourceLine(method, sourceLine);
-   
+
     /* Accounting for all possible CFGs of a given method.
      * The loop below is just a generalization in case we want to use a more precise callgraph
      * in the future.
@@ -535,9 +515,11 @@ public class MethodDependencyAnalysis {
     Set<AccessInfo> readSet = methodRWSet.readSet;
 
     Set<IMethod> methods = this.rwSets.keySet();
+    int instructionIndex = block.getFirstInstructionIndex();
     Iterator<SSAInstruction> blockIterator = block.iterator();
     while (blockIterator.hasNext()) {
       SSAInstruction ssaInstruction = (SSAInstruction) blockIterator.next();
+      instructionIndex++;
       if(ssaInstruction == null){
         continue;
       }
@@ -554,7 +536,8 @@ public class MethodDependencyAnalysis {
         IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
         IField iField = iClass.getField(fieldReference.getName());
         for (AccessInfo readAccessInfo : readSet) {
-          if(readAccessInfo.iField.equals(iField)){
+          int sourceLine = getSourceLine((IBytecodeMethod) methodNode.getMethod(), instructionIndex);
+          if(sourceLine == readAccessInfo.accessLineNumber && readAccessInfo.iField.equals(iField)){
             reads.add(readAccessInfo);
           }
         }

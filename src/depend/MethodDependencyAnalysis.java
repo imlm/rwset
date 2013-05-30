@@ -32,6 +32,7 @@ import com.ibm.wala.ipa.cfg.InterproceduralCFG;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
@@ -515,20 +516,75 @@ public class MethodDependencyAnalysis {
         addPredecessorsToWorkList(cfg, blocksWorkList, visitedBlocks, block);
       }
     }
-    
+
+    IR ir = cache.getIR(method);
+    DefUse defUse = cache.getDefUse(ir);
+    Queue<SSAInstruction> instructionsWorklist = getInitialInstructions(initialBlocks);
+    Set<SSAInstruction> visitedInstructions = new HashSet<SSAInstruction>();
+    while(!instructionsWorklist.isEmpty()) {
+      SSAInstruction ssaInstruction = instructionsWorklist.poll();
+      visitInstruction(ssaInstruction, ir, reads);
+      visitedInstructions.add(ssaInstruction);
+      addDefiningInstructionsToWorkList(ssaInstruction, defUse, instructionsWorklist,
+                                          visitedInstructions);
+    }
     return reads;
   }
 
-  private void visitBlock(ISSABasicBlock block, CGNode methodNode, CallGraph cg, Set<AccessInfo> reads) {
-    RWSet methodRWSet = rwSets.get(methodNode.getMethod());
-    Set<AccessInfo> readSet = methodRWSet.readSet;
+  /**
+   * Adds all instructions that define variables used in <code>ssaInstruction</code> to
+   * <code>instructionsWorklist</code> if they are not contained in <code>visitedInstructions</code>.
+   * @param ssaInstruction
+   * @param defUse
+   * @param instructionsWorklist
+   * @param visitedInstructions
+   */
+  private void addDefiningInstructionsToWorkList(SSAInstruction ssaInstruction,
+      DefUse defUse, Queue<SSAInstruction> instructionsWorklist, Set<SSAInstruction> visitedInstructions) {
+    int numberOfUses = ssaInstruction.getNumberOfUses();
+    for (int i = 0; i < numberOfUses; i++) {
+      int use = ssaInstruction.getUse(i);
+      SSAInstruction definingInstruction = defUse.getDef(use);
+      if(definingInstruction != null && !visitedInstructions.contains(definingInstruction)){
+        instructionsWorklist.add(definingInstruction);
+      }
+    }
+  }
 
+  private void visitInstruction(SSAInstruction ssaInstruction, IR ir, Set<AccessInfo> reads) {
+    RWSet methodRWSet = rwSets.get(ir.getMethod());
+    Set<AccessInfo> readSet = methodRWSet.readSet;
+    if(ssaInstruction instanceof SSAGetInstruction){
+      SSAGetInstruction getInstruction = (SSAGetInstruction) ssaInstruction;
+      FieldReference fieldReference = getInstruction.getDeclaredField();
+      IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
+      IField iField = iClass.getField(fieldReference.getName());
+      for (AccessInfo readAccessInfo : readSet) {
+        int sourceLine = getSourceLine((IBytecodeMethod) ir.getMethod(), getInstructionIndex(ssaInstruction, ir));
+        if(sourceLine == readAccessInfo.accessLineNumber && readAccessInfo.iField.equals(iField)){
+          reads.add(readAccessInfo);
+        }
+      }
+    }
+    
+  }
+
+  private Queue<SSAInstruction> getInitialInstructions(
+      List<ISSABasicBlock> initialBlocks) {
+    Queue<SSAInstruction> instructionsWorklist = new LinkedList<SSAInstruction>();
+    for (ISSABasicBlock block : initialBlocks) {
+      List<SSAInstruction> instructions = this.getInstructionsForBlock(block);
+      instructions.removeAll(instructionsWorklist);
+      instructionsWorklist.addAll(instructions);
+    }
+    return instructionsWorklist;
+  }
+
+  private void visitBlock(ISSABasicBlock block, CGNode methodNode, CallGraph cg, Set<AccessInfo> reads) {
     Set<IMethod> methods = this.rwSets.keySet();
-    int instructionIndex = block.getFirstInstructionIndex();
     Iterator<SSAInstruction> blockIterator = block.iterator();
     while (blockIterator.hasNext()) {
       SSAInstruction ssaInstruction = (SSAInstruction) blockIterator.next();
-      instructionIndex++;
       if(ssaInstruction == null){
         continue;
       }
@@ -537,17 +593,6 @@ public class MethodDependencyAnalysis {
         for (CGNode possibleTarget : cg.getPossibleTargets(methodNode, invokeInstruction.getCallSite())) {
           if (methods.contains(possibleTarget.getMethod())) {
             reads.addAll(rwSets.get(possibleTarget.getMethod()).readSet);
-          }
-        }
-      } else if(ssaInstruction instanceof SSAGetInstruction){
-        SSAGetInstruction getInstruction = (SSAGetInstruction) ssaInstruction;
-        FieldReference fieldReference = getInstruction.getDeclaredField();
-        IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
-        IField iField = iClass.getField(fieldReference.getName());
-        for (AccessInfo readAccessInfo : readSet) {
-          int sourceLine = getSourceLine((IBytecodeMethod) methodNode.getMethod(), instructionIndex);
-          if(sourceLine == readAccessInfo.accessLineNumber && readAccessInfo.iField.equals(iField)){
-            reads.add(readAccessInfo);
           }
         }
       }
@@ -621,5 +666,41 @@ public class MethodDependencyAnalysis {
     return sourceLineNum;
   }
 
-  
+  /**
+   * Returns a list containing all the instructions in <code>block</code>.
+   * <code>null</code> values are NOT included in the returned list.
+   * The instructions order is the same as the one in <code>block</code>.
+   * @param block
+   * @return
+   */
+  private List<SSAInstruction> getInstructionsForBlock(ISSABasicBlock block){
+    List<SSAInstruction> instructions = new ArrayList<SSAInstruction>();
+    Iterator<SSAInstruction> blockIterator = block.iterator();
+    while (blockIterator.hasNext()) {
+      SSAInstruction ssaInstruction = (SSAInstruction) blockIterator.next();
+      if(ssaInstruction != null){
+        instructions.add(ssaInstruction);
+      }
+     }
+    return instructions;
+  }
+
+  /**
+   * Returns the instruction index for a given <code>instruction</code> contained in IR <code>ir</code>.
+   * @param instruction
+   * @param ir
+   * @return
+   */
+  private int getInstructionIndex(SSAInstruction instruction, IR ir){
+    int instructionIndex = -1;
+    SSAInstruction[] instructions = ir.getInstructions();
+    for (int i = 0; i < instructions.length && instructionIndex == -1; i++) {
+      SSAInstruction ssaInstruction = instructions[i];
+      if((ssaInstruction != null && ssaInstruction.equals(instruction)) ||
+          ssaInstruction == instruction){
+        instructionIndex = i;
+      }
+    }
+    return instructionIndex;
+  }
 }

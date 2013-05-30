@@ -35,7 +35,7 @@ public class CallGraphGenerator {
     this.cha = cha;
   }
 
-  public Graph<CGNode> getCallGraph() throws WalaException, IllegalArgumentException, CancelException, IOException {
+  public Graph<CGNode> getPrunedCallGraph() throws WalaException, IllegalArgumentException, CancelException, IOException {
     CallGraph cg = getFullCallGraph();
     
     return GraphSlicer.prune(cg, new com.ibm.wala.util.Predicate<CGNode>(){

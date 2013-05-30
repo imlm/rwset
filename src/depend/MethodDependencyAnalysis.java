@@ -25,6 +25,7 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.cfg.AbstractInterproceduralCFG;
 import com.ibm.wala.ipa.cfg.InterproceduralCFG;
@@ -86,6 +87,12 @@ public class MethodDependencyAnalysis {
   static AnalysisCache cache;
   // application(instance)-specific caches
   private Map<IMethod, RWSet> rwSets = new HashMap<IMethod, RWSet>();
+
+  /**
+   * Callgraph generator for this analysis
+   */
+  private CallGraphGenerator cgGenerator;
+
   Timer timer = new Timer();
   Properties p;
   /**
@@ -150,8 +157,8 @@ public class MethodDependencyAnalysis {
     if (PROPAGATE_CALLS) {
 
       // building the call graph
-      CallGraphGenerator cgg = new CallGraphGenerator(scope, getCHA());
-      Graph<CGNode> graph = cgg.getCallGraph();
+      CallGraphGenerator cgg = this.getCallGraphGenerator();
+      Graph<CGNode> graph = cgg.getPrunedCallGraph();
       if (debugTime) {
         timer.stop();
         timer.show("done building call graph");
@@ -408,7 +415,7 @@ public class MethodDependencyAnalysis {
   }
 
   public SimpleGraph getDependencies(IMethod method, boolean onlyPublicClasses,
-      boolean onlyPublicMethods, int strLine) {
+      boolean onlyPublicMethods, int strLine) throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
     if (method == null) {
       throw new RuntimeException("Could not find informed method!");
     }
@@ -421,12 +428,7 @@ public class MethodDependencyAnalysis {
       findDependency(method, result, reads);
     } else {
       CallGraph cg = null;
-      try {
-        // TODO: We may want to reuse the callgraph created during the RWSet propagation phase.
-        cg = new CallGraphGenerator(scope, getCHA()).getFullCallGraph();
-      } catch (Exception e) {
-        throw new RuntimeException(e); // Can't we change this method's exception interface?
-      }
+      cg = this.getCallGraphGenerator().getFullCallGraph();
       Set<AccessInfo> flowingReads = findFlowingReadSet(method, strLine, cg);
       findDependency(method, result, flowingReads);
     }
@@ -472,6 +474,13 @@ public class MethodDependencyAnalysis {
 
   public ClassHierarchy getCHA() {
     return cha;
+  }
+
+  public CallGraphGenerator getCallGraphGenerator() throws ClassHierarchyException, IOException{
+    if(this.cgGenerator == null){
+      this.cgGenerator = new CallGraphGenerator(this.scope, this.getCHA());
+    }
+    return this.cgGenerator;
   }
 
   /**

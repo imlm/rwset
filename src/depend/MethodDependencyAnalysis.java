@@ -414,58 +414,75 @@ public class MethodDependencyAnalysis {
     }
   }
 
-  public SimpleGraph getDependencies(IMethod method, boolean onlyPublicClasses,
-      boolean onlyPublicMethods, int strLine) throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
+  /**
+   * Returns the dependencies graph for method <code>method</code> and possibly filtering the
+   * result by choosing a target line <code>sourceLine</code>.
+   * If <code>forDependents</code> is <code>true</code> this method will return a graph for the
+   * dependents of <code>method</code>, else the graph will contain the methods to which <code>method</code>
+   * depends.
+   * @param method
+   * @param sourceLine
+   * @param forDependents
+   * @return
+   * @throws CallGraphBuilderCancelException
+   * @throws ClassHierarchyException
+   * @throws IOException
+   */
+  public SimpleGraph getDependenciesGraph(IMethod method, int sourceLine, boolean forDependents) throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
     if (method == null) {
       throw new RuntimeException("Could not find informed method!");
     }
-
     SimpleGraph result = new SimpleGraph();
     /********* find transitive method writers *********/
-    Set<AccessInfo> reads = rwSets.get(method).readSet;
 
-    if (strLine == -1) {
-      findDependency(method, result, reads);
+    if(!forDependents){
+      Set<AccessInfo> reads = rwSets.get(method).readSet;
+      if (sourceLine >= 0) {
+        CallGraph cg = this.getCallGraphGenerator().getFullCallGraph();
+        reads = findFlowingReadSet(method, sourceLine, cg);
+      }
+      for (AccessInfo access : reads) {
+        fillGraph(method, result, false, false, access, true);
+      }
     } else {
-      CallGraph cg = null;
-      cg = this.getCallGraphGenerator().getFullCallGraph();
-      Set<AccessInfo> flowingReads = findFlowingReadSet(method, strLine, cg);
-      findDependency(method, result, flowingReads);
+      Set<AccessInfo> writes = rwSets.get(method).writeSet;
+      if (sourceLine >= 0) {
+        CallGraph cg = this.getCallGraphGenerator().getFullCallGraph();
+      }
+      for (AccessInfo access : writes) {
+        fillGraph(method, result, false, false, access, false);
+      }
     }
     return result;
   }
 
-  private void findDependency(IMethod method, SimpleGraph result,
-      Set<AccessInfo> reads) {
-    boolean onlyPublicClasses = false;
-    boolean onlyPublicMethods = false;
-    for (AccessInfo access : reads) {
-      fillGraph(method, result, onlyPublicClasses, onlyPublicMethods, access);
-    }
-  }
-
-  private void fillGraph(
-      IMethod method, 
-      SimpleGraph result,
-      boolean onlyPublicClasses, 
-      boolean onlyPublicMethods, 
-      AccessInfo readAccessInfo) {
+  private void fillGraph(IMethod method, SimpleGraph result, boolean onlyPublicClasses,
+                          boolean onlyPublicMethods, AccessInfo accessInfo,
+                          boolean isReadAccess) {
     for (Map.Entry<IMethod, RWSet> entry : rwSets.entrySet()) {
-      IMethod writer = entry.getKey();
-      if (onlyPublicClasses && !writer.getDeclaringClass().isPublic()) {
+      IMethod accessor = entry.getKey();
+      if (onlyPublicClasses && !accessor.getDeclaringClass().isPublic()) {
         continue;
       }
-      if (onlyPublicMethods && !writer.isPublic()) {
+      if (onlyPublicMethods && !accessor.isPublic()) {
         continue;
       }
-      Set<AccessInfo> writeSet = entry.getValue().writeSet;
-      for (AccessInfo writeAccessInfo : writeSet) {
-        if (writeAccessInfo.iField.equals(readAccessInfo.iField)) {
-          //result.getNode(writer).add(new Edge(method, fr, writeAccessInfo.accessLineNumber));
-          Edge edge = 
-              new Edge(writeAccessInfo.accessMethod, writeAccessInfo.accessLineNumber,
-                    readAccessInfo.accessMethod, readAccessInfo.accessLineNumber, 
-                    writeAccessInfo.iField);
+      
+      Set<AccessInfo> accessSet = isReadAccess ? entry.getValue().writeSet : entry.getValue().readSet;
+      for (AccessInfo accessorAccessInfo : accessSet) {
+        if (accessorAccessInfo.iField.equals(accessInfo.iField)) {
+          IMethod writer = accessorAccessInfo.accessMethod;
+          int writeLineNumber = accessorAccessInfo.accessLineNumber;
+          IMethod reader = accessInfo.accessMethod;
+          int readLineNumber = accessInfo.accessLineNumber;
+          if(!isReadAccess){
+            writer = accessInfo.accessMethod;
+            writeLineNumber = accessInfo.accessLineNumber;
+            reader = accessorAccessInfo.accessMethod;
+            readLineNumber = accessorAccessInfo.accessLineNumber;
+          }
+          Edge edge = new Edge(writer, writeLineNumber, reader, readLineNumber,
+                                accessorAccessInfo.iField);
           result.add(edge);
         }
       }

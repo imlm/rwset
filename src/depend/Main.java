@@ -90,7 +90,7 @@ public class Main {
     } 
     
     // build dependency graph
-    return mDepAn.getDependencies(method, false, false, line);
+    return mDepAn.getDependenciesGraph(method, line, true);
 
   }
 

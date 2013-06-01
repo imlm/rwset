@@ -32,6 +32,7 @@ import com.ibm.wala.ipa.cfg.InterproceduralCFG;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
@@ -40,6 +41,7 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAFieldAccessInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInstruction.Visitor;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.FieldReference;
@@ -418,7 +420,7 @@ public class MethodDependencyAnalysis {
    * Returns the dependencies graph for method <code>method</code> and possibly filtering the
    * result by choosing a target line <code>sourceLine</code>.
    * If <code>isWriterMethod</code> is <code>true</code> this method will return a graph for the
-   * dependents of <code>method</code>, else the graph will contain the methods to which <code>method</code>
+   * dependents of <code>method</code>, else the graph will contain mostlys the methods to which <code>method</code>
    * depends.
    * @param method
    * @param sourceLine
@@ -565,7 +567,8 @@ public class MethodDependencyAnalysis {
   }
 
   private void visitFlowingBlock(ISSABasicBlock block, CGNode methodNode, CallGraph cg, Set<AccessInfo> reads) {
-    RWSet methodRWSet = rwSets.get(methodNode.getMethod());
+    IMethod method = methodNode.getMethod();
+    RWSet methodRWSet = rwSets.get(method);
     Set<AccessInfo> readSet = methodRWSet.readSet;
 
     Set<IMethod> methods = this.rwSets.keySet();
@@ -585,22 +588,15 @@ public class MethodDependencyAnalysis {
           }
         }
       } else if(ssaInstruction instanceof SSAGetInstruction){
-        SSAGetInstruction getInstruction = (SSAGetInstruction) ssaInstruction;
-        FieldReference fieldReference = getInstruction.getDeclaredField();
-        IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
-        IField iField = iClass.getField(fieldReference.getName());
-        for (AccessInfo readAccessInfo : readSet) {
-          int sourceLine = getSourceLine((IBytecodeMethod) methodNode.getMethod(), instructionIndex);
-          if(sourceLine == readAccessInfo.accessLineNumber && readAccessInfo.iField.equals(iField)){
-            reads.add(readAccessInfo);
-          }
-        }
+        IField iField = this.getInstructionField((SSAFieldAccessInstruction) ssaInstruction);
+        updateSet(reads, method, readSet, instructionIndex, iField);
       }
     }
   }
 
   private void visitEscapingBlock(ISSABasicBlock block, CGNode methodNode, CallGraph cg, Set<AccessInfo> writes) {
-    RWSet methodRWSet = rwSets.get(methodNode.getMethod());
+    IMethod method = methodNode.getMethod();
+    RWSet methodRWSet = rwSets.get(method);
     Set<AccessInfo> writeSet = methodRWSet.writeSet;
 
     Set<IMethod> methods = this.rwSets.keySet();
@@ -620,16 +616,63 @@ public class MethodDependencyAnalysis {
           }
         }
       } else if(ssaInstruction instanceof SSAPutInstruction){
-        SSAPutInstruction getInstruction = (SSAPutInstruction) ssaInstruction;
-        FieldReference fieldReference = getInstruction.getDeclaredField();
-        IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
-        IField iField = iClass.getField(fieldReference.getName());
-        for (AccessInfo writeAccessInfo : writeSet) {
-          int sourceLine = getSourceLine((IBytecodeMethod) methodNode.getMethod(), instructionIndex);
-          if(sourceLine == writeAccessInfo.accessLineNumber && writeAccessInfo.iField.equals(iField)){
-            writes.add(writeAccessInfo);
+        IField iField = getInstructionField((SSAPutInstruction) ssaInstruction);
+        updateSet(writes, method, writeSet, instructionIndex, iField);
+      } else if(ssaInstruction instanceof SSAArrayStoreInstruction){
+        SSAArrayStoreInstruction storeInstruction = (SSAArrayStoreInstruction) ssaInstruction;
+        DefUse defUse = cache.getDefUse(cache.getIR(method));
+        int numberOfUses = storeInstruction.getNumberOfUses();
+        
+         /*We are only following the definitions-uses through one level to detect array field reads that
+         may be used solely to store elements in the array itself, i.e., in SSA form a field array
+         store command such as "x.a[1] = 10;" is implemented using two instructions, one that defines
+         a variable through a SSAGetInstruction and another that executes an SSAArrayStoreInstruction
+         on the previously defined variable.*/
+        for (int i = 0; i < numberOfUses; i++) {
+          int use = storeInstruction.getUse(i);
+          SSAInstruction def = defUse.getDef(use);
+          if(def != null && def instanceof SSAGetInstruction){
+            int currentNumberOfWrites = writes.size();
+            updateSet(writes, method, writeSet, instructionIndex,
+                       this.getInstructionField((SSAFieldAccessInstruction) def));
+            if(writes.size() > currentNumberOfWrites){
+              break;
+            }
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Returns the IField for the {@link FieldReference} contained in instruction <code>fieldAccessInstruction</code>.
+   * @param fieldAccessInstruction
+   * @return
+   */
+  private IField getInstructionField(SSAFieldAccessInstruction fieldAccessInstruction) {
+    FieldReference fieldReference = fieldAccessInstruction.getDeclaredField();
+    IClass iClass = getCHA().lookupClass(fieldReference.getDeclaringClass());
+    IField iField = iClass.getField(fieldReference.getName());
+    return iField;
+  }
+
+  /**
+   * Updates the {@link AccessInfo} set <code>set</code> by adding AccessInfo objects from
+   * <code>accessInfos</code> if they have the same source line number as the instruction in
+   * index <code>instructionIndex</code> <b>and</b> if their <code>iField</code> attribute equals
+   * the <code>iField</code> parameter.
+   * @param set
+   * @param method
+   * @param accessInfos
+   * @param instructionIndex
+   * @param iField
+   */
+  private void updateSet(Set<AccessInfo> set, IMethod method,
+      Set<AccessInfo> accessInfos, int instructionIndex, IField iField) {
+    int sourceLine = getSourceLine((IBytecodeMethod) method, instructionIndex);
+    for (AccessInfo accessInfo : accessInfos) {
+      if(sourceLine == accessInfo.accessLineNumber && accessInfo.iField.equals(iField)){
+       set.add(accessInfo);
       }
     }
   }

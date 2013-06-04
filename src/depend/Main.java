@@ -90,7 +90,9 @@ public class Main {
     } 
     
     // build dependency graph
-    return mDepAn.getDependenciesGraph(method, line, false);
+    boolean forwardDependencies = Util.getBooleanProperty(Util.FORWARD_DEPENDENCIES_PROPERTY_NAME,
+                                                          false);
+    return mDepAn.getDependenciesGraph(method, line, forwardDependencies);
 
   }
 

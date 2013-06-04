@@ -41,7 +41,6 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAFieldAccessInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAInstruction.Visitor;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.FieldReference;
@@ -420,23 +419,23 @@ public class MethodDependencyAnalysis {
    * Returns the dependencies graph for method <code>method</code> and possibly filtering the
    * result by choosing a target line <code>sourceLine</code>.
    * If <code>isWriterMethod</code> is <code>true</code> this method will return a graph for the
-   * dependents of <code>method</code>, else the graph will contain mostlys the methods to which <code>method</code>
+   * dependents of <code>method</code>, else the graph will contain mostly the methods to which <code>method</code>
    * depends.
    * @param method
    * @param sourceLine
-   * @param isWriterMethod
+   * @param forwardDependencies
    * @return
    * @throws CallGraphBuilderCancelException
    * @throws ClassHierarchyException
    * @throws IOException
    */
-  public SimpleGraph getDependenciesGraph(IMethod method, int sourceLine, boolean isWriterMethod) throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
+  public SimpleGraph getDependenciesGraph(IMethod method, int sourceLine, boolean forwardDependencies) throws CallGraphBuilderCancelException, ClassHierarchyException, IOException {
     if (method == null) {
       throw new RuntimeException("Could not find informed method!");
     }
     SimpleGraph result = new SimpleGraph();
 
-    if(!isWriterMethod){
+    if(!forwardDependencies){
       Set<AccessInfo> reads = rwSets.get(method).readSet;
       if (sourceLine >= 0) {
         CallGraph cg = this.getCallGraphGenerator().getFullCallGraph();

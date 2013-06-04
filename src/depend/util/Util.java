@@ -52,6 +52,8 @@ public class Util {
 
   private static final String DOT_OUTPUT_PATH_PROPERTY_NAME = "dotFileOutputPath";
 
+  public static final String FORWARD_DEPENDENCIES_PROPERTY_NAME = "forwardDependencies";
+
   /************** classification of methods and classes ******************/
   public static boolean isRelevantMethod(IMethod meth) {
     IClass klass = meth.getDeclaringClass();

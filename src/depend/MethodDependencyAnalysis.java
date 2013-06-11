@@ -517,7 +517,6 @@ public class MethodDependencyAnalysis {
     Set<AccessInfo> reads = new HashSet<AccessInfo>();
     AbstractInterproceduralCFG<ISSABasicBlock> interproceduralCFG = new InterproceduralCFG(cg);
 
-    // I am not 100% sure but I believe a single source line may encompass more than one basic block!
     List<ISSABasicBlock> initialBlocks = this.getBasicBlocksForSourceLine(method, sourceLine);
 
     /* Accounting for all possible CFGs of a given method.
@@ -546,7 +545,6 @@ public class MethodDependencyAnalysis {
     Set<AccessInfo> writes = new HashSet<AccessInfo>();
     AbstractInterproceduralCFG<ISSABasicBlock> interproceduralCFG = new InterproceduralCFG(cg);
 
-    // I am not 100% sure but I believe a single source line may encompass more than one basic block!
     List<ISSABasicBlock> initialBlocks = this.getBasicBlocksForSourceLine(method, sourceLine);
 
     Set<CGNode> cgNodes = cg.getNodes(method.getReference());
@@ -656,34 +654,33 @@ public class MethodDependencyAnalysis {
   }
 
   /**
-   * Updates the {@link AccessInfo} set <code>set</code> by adding AccessInfo objects from
-   * <code>accessInfos</code> if they have the same source line number as the instruction in
+   * Updates the {@link AccessInfo} set <code>accessInfoTarget</code> by adding AccessInfo objects from
+   * <code>accessInfosSource</code> if they have the same source line number as the instruction in
    * index <code>instructionIndex</code> <b>and</b> if their <code>iField</code> attribute equals
    * the <code>iField</code> parameter.
-   * @param set
+   * @param accessInfoTarget
    * @param method
-   * @param accessInfos
+   * @param accessInfosSource
    * @param instructionIndex
    * @param iField
    */
-  private void updateSet(Set<AccessInfo> set, IMethod method,
-      Set<AccessInfo> accessInfos, int instructionIndex, IField iField) {
+  private void updateSet(Set<AccessInfo> accessInfoTarget, IMethod method,
+      Set<AccessInfo> accessInfosSource, int instructionIndex, IField iField) {
     int sourceLine = getSourceLine((IBytecodeMethod) method, instructionIndex);
-    for (AccessInfo accessInfo : accessInfos) {
+    for (AccessInfo accessInfo : accessInfosSource) {
       if(sourceLine == accessInfo.accessLineNumber && accessInfo.iField.equals(iField)){
-       set.add(accessInfo);
+       accessInfoTarget.add(accessInfo);
       }
     }
   }
 
   /**
-   * Add all predecessor basic blocks of <code>block</code> to <code>blocksWorkList</code> that
+   * Add all basic blocks of <code>nodes</code> to <code>blocksWorkList</code> that
    * haven't been visited before.
-   * @param cfg the control flow graph used to retrieve the predecessor blocks of <code>block</code>
    * @param blocksWorkList queue of basic blocks to which the predecessors may be added
    * @param visitedBlocks list of basic blocks that have already been visited and that should not
    * be added to <code>blocksWorkList</code> again
-   * @param block
+   * @param nodes
    */
   private void addToWorkList(
       Iterator<ISSABasicBlock> nodes,

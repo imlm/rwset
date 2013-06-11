@@ -54,6 +54,8 @@ public class Util {
 
   public static final String FORWARD_DEPENDENCIES_PROPERTY_NAME = "forwardDependencies";
 
+  public static final String WITH_INDIRECTS_PROPERTY_NAME = "withIndirects";
+
   /************** classification of methods and classes ******************/
   public static boolean isRelevantMethod(IMethod meth) {
     IClass klass = meth.getDeclaringClass();

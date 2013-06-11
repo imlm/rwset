@@ -57,6 +57,9 @@ public class SimpleGraph {
       sb.append(edge.writerLine);
 
       sb.append("\"");
+      if(!edge.direct){
+        sb.append(";").append("style=dashed");
+      }
       sb.append(" ]");
       
       // update array

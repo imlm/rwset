@@ -474,6 +474,7 @@ public class MethodDependencyAnalysis {
             new HashSet<IMethod>(), false);
       }
     }
+    dependencyGraph.setTargetMethod(method);
     return dependencyGraph;
   }
 

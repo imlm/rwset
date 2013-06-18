@@ -65,6 +65,7 @@ public class SimpleGraph {
       sb.append("\"");
       if(!edge.direct){
         sb.append(";").append("style=dashed");
+        sb.append(";").append("arrowhead=\"none\"");
       }
       sb.append(" ]");
       
